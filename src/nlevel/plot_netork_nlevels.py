@@ -146,8 +146,6 @@ def animation():
 
 if __name__ == '__main__':
     #animation()
-
-    
     #phis = np.array([np.pi/16, np.pi/16, np.pi/15])  # ángulos de rotación
     #angles = np.cumsum(phis)
     angles = np.array([np.pi/10, np.pi/10, np.pi/5, np.pi/2.5])  # ángulos de rotación
