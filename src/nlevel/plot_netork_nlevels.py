@@ -145,17 +145,17 @@ def animation():
     plt.show()
 
 if __name__ == '__main__':
-    #animation()
+    animation()
     #phis = np.array([np.pi/16, np.pi/16, np.pi/15])  # ángulos de rotación
     #angles = np.cumsum(phis)
-    angles = np.array([np.pi/10, np.pi/10, np.pi/5, np.pi/2.5])  # ángulos de rotación
-    sum_angles = np.sum(angles)
-    print("sum angles", sum_angles * 180/np.pi)
-    square_size = 1.0
-    structure, structure_size_x, structure_size_y = draw_total_levels(square_size, angles)
-    fig, ax = plt.subplots()
-    ax.set_aspect('equal')
-    ax.axis('off')
-    print_structure(ax, structure)
-    pint_box(ax, structure_size_x, structure_size_y)
-    plt.show()
+    #angles = np.array([np.pi/10, np.pi/10, np.pi/5, np.pi/2.5])  # ángulos de rotación
+    #sum_angles = np.sum(angles)
+    #print("sum angles", sum_angles * 180/np.pi)
+    #square_size = 1.0
+    #structure, structure_size_x, structure_size_y = draw_total_levels(square_size, angles)
+    #fig, ax = plt.subplots()
+    #ax.set_aspect('equal')
+    #ax.axis('off')
+    #print_structure(ax, structure)
+    #pint_box(ax, structure_size_x, structure_size_y)
+    #plt.show()

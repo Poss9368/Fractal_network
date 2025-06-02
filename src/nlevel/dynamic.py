@@ -11,13 +11,20 @@ def potential(thetas: jnp.ndarray) -> float:
         float: The energy of the system.
     """
     number_of_levels = len(thetas)
+    sum_thetas = 0.0
     energy = 0.0 
-    for i in range(len(thetas) - 1):
+    for i in range(len(thetas)):
         if i == 0:
-            energy += (4**(number_of_levels-1-i))*4*thetas[i]**2
+            mutiplicidad = 4**(number_of_levels-1-i)
+            #print(f"level: {i}, mutiplicidad: {mutiplicidad}\n")
+            energy += mutiplicidad * 4 * thetas[i]**2
+            sum_thetas += thetas[i]
         else:
-            energy += (4**(number_of_levels-1-i)) * 2 *((thetas[i]-thetas[i-1])**2 + (thetas[i]+thetas[i-1])**2)
-
+            mutiplicidad = 4**(number_of_levels-1-i)
+            #print(f"level: {i}, mutiplicidad: {mutiplicidad}\n")
+            energy += mutiplicidad * 2 * (thetas[i] - sum_thetas)**2 
+            energy += mutiplicidad * 2 * (thetas[i] + sum_thetas)**2
+            sum_thetas += thetas[i]
     return energy
 
 def potential_gradient(thetas: jnp.ndarray) -> jnp.ndarray:
@@ -83,12 +90,12 @@ def mean_error(x: jnp.ndarray) -> float:
 if __name__ == "__main__":
     import numpy as np
     # Example usage
-    thetas = jnp.array([1e-9, 1e-9])  # Example angles for a 4-level system
+    thetas = jnp.array([np.pi/8, np.pi/4, np.pi/2])  # Example angles for a 4-level system
     N = len(thetas)  # Number of angles
-    lambda_restriction = 2
+    lambda_restriction = 0.001# Lagrange multiplier for the constraint
     presicion = 5e-9 # Presición para la minimización
 
-    thetas_grad = -modified_hamiltonian_gradient(thetas, lambda_restriction)
+    thetas_grad = - modified_hamiltonian_gradient(thetas, lambda_restriction)
     error = mean_error(thetas_grad)
 
     step_size = 0.01  # Tamaño del paso de integración para minimización
@@ -98,7 +105,7 @@ if __name__ == "__main__":
     while error > presicion:
         thetas_velocity_CG = thetas_grad + alpha_CG * thetas_velocity_CG
         thetas += step_size * thetas_velocity_CG
-        thetas_grad = -modified_hamiltonian_gradient(thetas, lambda_restriction)
+        thetas_grad = - modified_hamiltonian_gradient(thetas, lambda_restriction)
         new_error = mean_error(thetas_grad)
 
         if new_error < error:
@@ -108,8 +115,8 @@ if __name__ == "__main__":
         error = new_error
         print(f"error: {error}")
 
-    print(f"Optimized angles: {thetas}")
-
+    print(f"Optimized angles: {thetas*180/np.pi}")
+    
     
 
 
