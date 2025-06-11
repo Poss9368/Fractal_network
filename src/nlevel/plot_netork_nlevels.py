@@ -134,7 +134,7 @@ def animation():
         print_structure(ax, structure)
         pint_box(ax, structure_size_x, structure_size_y)
         sum_angles = np.sum(scaled_angles)
-        print("sum angles {} -  size_x {}", sum_angles * 180/np.pi, structure_size_y)
+        print(f"sum angles {sum_angles * 180/np.pi} -  size_x {structure_size_x} - size_y {structure_size_y}")
         #pint_box(ax, structure_size_y, structure_size_x)
 
     # Crear la animación
