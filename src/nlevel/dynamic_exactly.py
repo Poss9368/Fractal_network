@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
+from matplotlib.animation import FFMpegWriter
 
 from plot_nlevels import draw_total_levels, pint_box, print_square, print_structure
 
@@ -161,6 +162,9 @@ if __name__ == "__main__":
         structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = print_structure(thetas, ax)
         ax.set_title(f"Lambda = {lambda_restriction:.2e}\nArea = {structure_size_x_max * structure_size_y_max:.2f}")
     anim = FuncAnimation(fig, update, frames=len(lambda_values), interval=30)
+
+    ## guardar la animación en formato gif"
+    anim.save('dynamic_exactly.gif', writer='pillow', fps=50)
 
     plt.show()
     
