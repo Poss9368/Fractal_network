@@ -62,37 +62,48 @@ def draw_level_0(square_size, angle):
         structures.append(unique_square)
     
     #porte de la nueva estructura
-    structure_size_x = 2*square_size/np.cos(angle*0.5) + 2*square_size*np.sin(angle*0.5)*(1- np.tan(angle*0.5)) 
-    structure_size_y = 2*square_size*np.cos(angle*0.5)
-    return structures, structure_size_x, structure_size_y
+    structure_size_y_max     = 2*square_size/np.cos(angle*0.5) + 2*square_size*np.sin(angle*0.5)*(1 - np.tan(angle*0.5)) 
+    structure_size_x_min     = 2*square_size*np.sin(angle*0.5)
 
-def draw_level_n(structure_size_x, structure_size_y, angle, init_structure):
+    structure_size_x_max     = 2*square_size/np.cos(angle*0.5) + 2*square_size*np.sin(angle*0.5)*(1- np.tan(angle*0.5)) 
+    structure_size_y_min     = 2*square_size*np.cos(angle*0.5)
+
+    return structures, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
+
+def draw_level_n(structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min, angle, init_structure):
     structures = []
     for c in centers:
         p = -c[0]*c[1]
         theta = angle*0.5*p
         new_structure = rotate_array_of_points(init_structure, theta)
-        dispacement_x = structure_size_x * c[0] * 0.5
-        dispacement_y = structure_size_y * c[1] * 0.5
+        dispacement_x = structure_size_x_max * c[0] * 0.5
+        dispacement_y = structure_size_y_min * c[1] * 0.5
         displacement = compute_center_position(dispacement_x, dispacement_y, theta)
         new_structure = traslate_array_of_points(new_structure, displacement)
         structures.append(new_structure)
+    
     structures = np.concatenate(structures)
-    structure_size_x = 2*structure_size_x/np.cos(angle*0.5) + 2*np.sin(angle*0.5)*(structure_size_y - structure_size_x*np.tan(angle*0.5)) 
-    structure_size_y = 2*structure_size_y*np.cos(angle*0.5)
-    return structures, structure_size_x, structure_size_y
+
+    #porte de la nueva estructura
+    structure_size_y_max = 2*structure_size_y_min/np.cos(angle*0.5) + 2*np.sin(angle*0.5)*(structure_size_x_max - structure_size_y_min*np.tan(angle*0.5)) 
+    structure_size_x_min = 2*structure_size_y_min*np.sin(angle*0.5)
+
+    structure_size_x_max = 2*structure_size_x_max/np.cos(angle*0.5) + 2*np.sin(angle*0.5)*(structure_size_y_min - structure_size_x_max*np.tan(angle*0.5)) 
+    structure_size_y_min = 2*structure_size_y_min*np.cos(angle*0.5)
+
+    return structures, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
 
 def draw_total_levels(square_size: float, angles:np.ndarray):
     """Dibuja la estructura total de niveles."""
     # primer nivel
-    structure, structure_size_x, structure_size_y = draw_level_0(square_size, angles[0])
+    structures, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = draw_level_0(square_size, angles[0])
     # niveles superiores
     for i in range(1, len(angles)):
-        structure, structure_size_x, structure_size_y = draw_level_n(structure_size_x, structure_size_y, angles[i], structure)
-    return structure, structure_size_x, structure_size_y
+        structures, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = draw_level_n(structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min, angles[i], structures)
+    return structures, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
 
 # function to print the structure and fill it with color 
-def print_structure(ax, structure):
+def print_square(ax, structure):
     for square in structure:
         ax.fill(square[:, 0], square[:, 1], color=square_color, edgecolor='black')
 
@@ -108,13 +119,24 @@ def pint_box(ax, size_x, size_y):
         [-size_x, -size_y]
     ])
     ax.fill(box[:, 0], box[:, 1], color='none', edgecolor='black')
-    
-def animation():
-    # Parámetros
-    angles = np.array([np.pi/16, np.pi/16, np.pi/8, np.pi/4, np.pi/2])  # ángulos de rotación
-    square_size = 1.0
-    num_frames = 100  # Número de frames para la animación
 
+def print_structure(thetas: np.ndarray, ax ,square_size: float = 1.0):
+    structure, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = draw_total_levels(square_size, thetas)
+    n = len(thetas)
+    ax.set_aspect('equal')
+    ax.axis('off')    
+    ax.set_xlim(-(2)**(n-1)*1.7*square_size, (2)**(n-1)*1.7*square_size)
+    ax.set_ylim(-(2)**(n-1)*1.7*square_size, (2)**(n-1)*1.7*square_size)
+    print_square(ax, structure)
+    pint_box(ax, structure_size_x_max, structure_size_y_max)
+    return structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
+ 
+def ejample_animation():
+    # Parámetros
+    angles = np.array([np.pi/8, np.pi/4])  # ángulos de rotación
+    square_size = 1.0
+    num_frames = 100  # Número de frames para la animaci
+    n_angles = len(angles)
     # Configurar la figura
     fig, ax = plt.subplots()
     ax.set_aspect('equal')
@@ -125,37 +147,25 @@ def animation():
         ax.clear()  # Limpiar el gráfico
         ax.set_aspect('equal')
         ax.axis('off')
-        ax.set_xlim(-16*2, 16*2)
-        ax.set_ylim(-16*2, 16*2)
+        ax.set_xlim(-(2)**(n_angles-1)*2, (2)**(n_angles-1)*2)
+        ax.set_ylim(-(2)**(n_angles-1)*2, (2)**(n_angles-1)*2)
         factor = frame / (num_frames - 1)  # Valor entre 0 y 1
         scaled_angles = angles * factor  # Escalar los ángulos
-
-        structure, structure_size_x, structure_size_y = draw_total_levels(square_size, scaled_angles)
-        print_structure(ax, structure)
-        pint_box(ax, structure_size_x, structure_size_y)
+        structure, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = draw_total_levels(square_size, scaled_angles)
+        print_square(ax, structure)
+        pint_box(ax, structure_size_x_max, structure_size_y_max)
         sum_angles = np.sum(scaled_angles)
-        print(f"sum angles {sum_angles * 180/np.pi} -  size_x {structure_size_x} - size_y {structure_size_y}")
-        #pint_box(ax, structure_size_y, structure_size_x)
+        print(f"sum angles {sum_angles * 180/np.pi} -  size_x {structure_size_x_max} - size_y {structure_size_y_min}")
 
     # Crear la animación
     anim = FuncAnimation(fig, update, frames=num_frames, interval=50 )
+
+    # Guardar la animación como un archivo de video (opcional)
     #anim.save('fractal_auxetic_evolution.mp4', writer='ffmpeg', fps=20)
 
     # Mostrar la animación
     plt.show()
 
 if __name__ == '__main__':
-    animation()
-    #phis = np.array([np.pi/16, np.pi/16, np.pi/15])  # ángulos de rotación
-    #angles = np.cumsum(phis)
-    #angles = np.array([np.pi/10, np.pi/10, np.pi/5, np.pi/2.5])  # ángulos de rotación
-    #sum_angles = np.sum(angles)
-    #print("sum angles", sum_angles * 180/np.pi)
-    #square_size = 1.0
-    #structure, structure_size_x, structure_size_y = draw_total_levels(square_size, angles)
-    #fig, ax = plt.subplots()
-    #ax.set_aspect('equal')
-    #ax.axis('off')
-    #print_structure(ax, structure)
-    #pint_box(ax, structure_size_x, structure_size_y)
-    #plt.show()
+    ejample_animation()
+

@@ -3,7 +3,7 @@ from jax import grad
 from matplotlib import pyplot as plt
 import numpy as np
 
-from plot_netork_nlevels import draw_total_levels, pint_box, print_structure
+from nlevel.plot_nlevels import draw_total_levels, pint_box, print_structure
 
 def potential(thetas: jnp.ndarray) -> float:
     """
