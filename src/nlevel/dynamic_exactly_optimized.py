@@ -1,6 +1,7 @@
 from matplotlib import pyplot as plt
 from matplotlib.animation import FuncAnimation
 import numpy as np
+from numba import njit
 from matplotlib.animation import FFMpegWriter
 
 from plot_nlevels import draw_total_levels, pint_box, print_square, print_structure
@@ -26,6 +27,7 @@ def potential(thetas: np.ndarray) -> float:
 
     return energy
 
+@njit
 def potential_gradient(thetas: np.ndarray) -> np.ndarray:
     """
     Calculate the gradient of the energy with respect to the angles using analitic differentiation.
@@ -66,10 +68,11 @@ def constraint_term(thetas: np.ndarray) -> float:
     structure_size_x = 1.0
     structure_size_y = 1.0
     for i in range(n):
-        structure_size_x = 2*structure_size_x*cos_tethas_2[i] + 2*structure_size_y*sin_tethas_2[i]
+        structure_size_x = 2*(structure_size_x*cos_tethas_2[i] + structure_size_y*sin_tethas_2[i])
         structure_size_y = 2*structure_size_y*cos_tethas_2[i]
     return - (structure_size_y + structure_size_x) 
 
+@njit
 def constraint_term_gradient(thetas: np.ndarray) -> np.ndarray:
     """
     Calculate the gradient of the size of the structure in the y direction with respect to the angles.
@@ -125,7 +128,7 @@ def conjudate_gradient(thetas: np.ndarray, lambda_restriction: float) -> np.ndar
     thetas_velocity_CG: np.ndarray  = np.array(np.zeros(n))  
     alpha_CG: float                 = 0 
     iter: int                       = 0
-    max_iter: int                 = 10000
+    max_iter: int                   = 10000
     
     while error > presicion and iter < max_iter:
         thetas_velocity_CG = thetas_grad + alpha_CG * thetas_velocity_CG
@@ -148,7 +151,7 @@ def conjudate_gradient(thetas: np.ndarray, lambda_restriction: float) -> np.ndar
 
 if __name__ == "__main__":
     # Ángulos iniciales del sistema
-    thetas_init = np.array([np.pi/32, np.pi/16, np.pi/8, np.pi/4])
+    thetas_init = np.array([np.pi/32, np.pi/32, np.pi/16, np.pi/8, np.pi/4])
 
     # Rango de valores para lambda_restriction
     lambda_values = np.logspace(-3, 0.4, 200) 
