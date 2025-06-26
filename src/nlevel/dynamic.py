@@ -8,6 +8,35 @@ from plot_nlevels import draw_total_levels, pint_box, print_square, print_struct
 
 square_color = '#4DD0E1'  # color del cuadrado
 
+@njit
+def structure_size(thetas: np.ndarray) -> tuple:
+    """
+    Calculate the size of the structure in the x and y directions given the angles.
+
+    Args:
+        thetas (array): Angles of the system.
+    Returns:
+        tuple: The size of the structure in the x and y directions.
+    """
+    n = len(thetas)
+    # Precompute cos and sin of half angles
+    cos_tethas_2 = np.cos(thetas * 0.5)
+    sin_tethas_2 = np.sin(thetas * 0.5)
+
+    structure_size_y_max = 1.0
+    structure_size_y_min = 1.0
+    structure_size_x_max = 1.0
+    structure_size_x_min = 1.0
+    for i in range(n):
+        structure_size_y_max = 2*sin_tethas_2[i]*structure_size_x_max + 2*structure_size_y_min*cos_tethas_2[i] 
+        structure_size_x_min = 2*structure_size_y_min*sin_tethas_2[i]
+
+        structure_size_x_max = 2*sin_tethas_2[i]*structure_size_y_min + 2*structure_size_x_max*cos_tethas_2[i] 
+        structure_size_y_min = 2*structure_size_y_min*cos_tethas_2[i] 
+
+    return structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
+
+@njit
 def potential(thetas: np.ndarray) -> float:
     """
     Calculate the energy of a system given the angles
@@ -49,8 +78,9 @@ def potential_gradient(thetas: np.ndarray) -> np.ndarray:
             S_i = partial_sums[i - 1]
             term2 += 2 * (4 ** (n - i)) * S_i
         grad[k] = term1 + term2
-    return grad
+    return grad   # Normalizar por 2^n para que la energía sea adimensional
 
+@njit
 def constraint_term(thetas: np.ndarray) -> float:
     """
     Calculate the size of the structure in the y direction given the angles.
@@ -64,20 +94,21 @@ def constraint_term(thetas: np.ndarray) -> float:
     # Precompute cos and sin of half angles
     cos_tethas_2 = np.cos(thetas * 0.5)
     sin_tethas_2 = np.sin(thetas * 0.5)
+    
 
     structure_size_x = 1.0
     structure_size_y = 1.0
     for i in range(n):
         structure_size_x = 2*(structure_size_x*cos_tethas_2[i] + structure_size_y*sin_tethas_2[i])
         structure_size_y = 2*structure_size_y*cos_tethas_2[i]
-    return - (structure_size_y + structure_size_x) 
+    return 1.0 - structure_size_x/(2**n) 
 
 @njit
 def constraint_term_gradient(thetas: np.ndarray) -> np.ndarray:
     """
     Calculate the gradient of the size of the structure in the y direction with respect to the angles.
 
-    Args:
+    Args: 
         thetas (array): Angles of the system.
     Returns:
         array: The gradient of the size of the structure in the y direction with respect to the angles.
@@ -87,8 +118,10 @@ def constraint_term_gradient(thetas: np.ndarray) -> np.ndarray:
     cos_tethas_2 = np.cos(thetas * 0.5)
     sin_tethas_2 = np.sin(thetas * 0.5)
 
-    grad = np.zeros(n)
-    for j in range(n):
+    def aux_function(j: float, cos_tethas_2: np.ndarray, sin_tethas_2: np.ndarray) -> float:
+        """
+        Auxiliary function to calculate the gradient for a specific angle.
+        """
         grad_x = 1.0
         grad_y = 1.0
         for i in range(n):
@@ -98,10 +131,15 @@ def constraint_term_gradient(thetas: np.ndarray) -> np.ndarray:
             else:
                 grad_x = 2*grad_x*cos_tethas_2[i] + 2*grad_y*sin_tethas_2[i]
                 grad_y = 2*grad_y*cos_tethas_2[i]
-        grad[j] = - (grad_y + grad_x)
+        return grad_x
 
-    return grad
+    grad = np.zeros(n)
+    for j in range(n):
+        grad[j] = aux_function(j, cos_tethas_2, sin_tethas_2)
 
+    return - grad / 2**n 
+
+@njit
 def modified_hamiltonian_gradient(thetas: np.ndarray, lambda_restriction) -> np.ndarray:
     """
     Calculate the total gradient of the energy and the size of the structure in the y direction.
@@ -119,8 +157,8 @@ def mean_error(x: np.ndarray) -> float:
     return np.sqrt(np.mean(x**2))
 
 def conjudate_gradient(thetas: np.ndarray, lambda_restriction: float) -> np.ndarray:
-    presicion: float    = 1e-8       # Presición para la minimización
-    step_size: float    = 0.0005      # Tamaño del paso de integración para minimización
+    presicion: float    = 1e-8    # Presición para la minimización
+    step_size: float    = 1e-5    # Tamaño del paso de integración para minimización
     n: np.ndarray       = len(thetas) # Numero de angulos del sistema"
     thetas_grad: np.ndarray  = modified_hamiltonian_gradient(thetas, lambda_restriction) # initial gradient
     error: float             = mean_error(thetas_grad) # initial error
@@ -128,9 +166,11 @@ def conjudate_gradient(thetas: np.ndarray, lambda_restriction: float) -> np.ndar
     thetas_velocity_CG: np.ndarray  = np.array(np.zeros(n))  
     alpha_CG: float                 = 0 
     iter: int                       = 0
-    max_iter: int                   = 10000
+    max_iter: int                   = 1e10
     
     while error > presicion and iter < max_iter:
+        if iter%10000 == 0:
+            print(f"n = {n}, iter = {iter}, error = {error:.2e}")
         thetas_velocity_CG = thetas_grad + alpha_CG * thetas_velocity_CG
         thetas -= step_size * thetas_velocity_CG
         thetas_grad = modified_hamiltonian_gradient(thetas, lambda_restriction)
@@ -145,16 +185,18 @@ def conjudate_gradient(thetas: np.ndarray, lambda_restriction: float) -> np.ndar
         
     if iter == max_iter:
         print("Warning: Maximum number of iterations reached without convergence.")
-    print(f"Optimized angles: {thetas*180/np.pi}, sum of angles: {np.sum(thetas)*180/np.pi}")
+    #print(f"Optimized angles: {thetas*180/np.pi}, sum of angles: {np.sum(thetas)*180/np.pi}")
     
     return thetas
 
-if __name__ == "__main__":
+def example_animation():
     # Ángulos iniciales del sistema
-    thetas_init = np.array([np.pi/32, np.pi/32, np.pi/16, np.pi/8, np.pi/4])
+    n = 3  # Número de ángulos
+    thetas_init = np.zeros(n)  # Inicializar con ceros
+    thetas_init[-1] = np.pi / 512  # Último ángulo en radianes
 
     # Rango de valores para lambda_restriction
-    lambda_values = np.logspace(-3, 0.4, 200) 
+    lambda_values = np.logspace(-2, 1.7, 200) 
 
     fig, ax = plt.subplots()
 
@@ -163,18 +205,19 @@ if __name__ == "__main__":
         thetas = conjudate_gradient(thetas_init, lambda_restriction)
         ax.clear()
         structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = print_structure(thetas, ax)
-        ax.set_title(f"Lambda = {lambda_restriction:.2e}\nArea = {structure_size_x_max * structure_size_y_max:.2f}")
+        ax.set_title(f"Lambda = {lambda_restriction:.2e}\nLx = {structure_size_x_max:-2f} \nArea = {structure_size_x_max * structure_size_y_max:.2f}")
     anim = FuncAnimation(fig, update, frames=len(lambda_values), interval=30)
 
     ## guardar la animación en formato gif"
-    #anim.save('dynamic_exactly.gif', writer='pillow', fps=50)
+    ##anim.save('dynamic_exactly.gif', writer='pillow', fps=50)
 
     plt.show()
+
+
+if __name__ == "__main__":
+    example_animation()  
+
     
-
-
-
-
 
 
 

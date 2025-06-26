@@ -125,8 +125,8 @@ def print_structure(thetas: np.ndarray, ax ,square_size: float = 1.0):
     n = len(thetas)
     ax.set_aspect('equal')
     ax.axis('off')    
-    ax.set_xlim(-(2)**(n-1)*1.7*square_size, (2)**(n-1)*1.7*square_size)
-    ax.set_ylim(-(2)**(n-1)*1.7*square_size, (2)**(n-1)*1.7*square_size)
+    ax.set_xlim(-(2)**(n-1)*1.9*square_size, (2)**(n-1)*1.9*square_size)
+    ax.set_ylim(-(2)**(n-1)*1.9*square_size, (2)**(n-1)*1.9*square_size)
     print_square(ax, structure)
     pint_box(ax, structure_size_x_max, structure_size_y_max)
     return structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min

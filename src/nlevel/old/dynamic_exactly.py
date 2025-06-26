@@ -7,6 +7,33 @@ from plot_nlevels import draw_total_levels, pint_box, print_square, print_struct
 
 square_color = '#4DD0E1'  # color del cuadrado
 
+def structure_size(thetas: np.ndarray) -> tuple:
+    """
+    Calculate the size of the structure in the x and y directions given the angles.
+
+    Args:
+        thetas (array): Angles of the system.
+    Returns:
+        tuple: The size of the structure in the x and y directions.
+    """
+    n = len(thetas)
+    # Precompute cos and sin of half angles
+    cos_tethas_2 = np.cos(thetas * 0.5)
+    sin_tethas_2 = np.sin(thetas * 0.5)
+
+    structure_size_y_max = 1.0
+    structure_size_y_min = 1.0
+    structure_size_x_max = 1.0
+    structure_size_x_min = 1.0
+    for i in range(n):
+        structure_size_y_max = 2*sin_tethas_2[i]*structure_size_x_max + 2*structure_size_y_min*cos_tethas_2[i] 
+        structure_size_x_min = 2*structure_size_y_min*sin_tethas_2[i]
+
+        structure_size_x_max = 2*sin_tethas_2[i]*structure_size_y_min + 2*structure_size_x_max*cos_tethas_2[i] 
+        structure_size_y_min = 2*structure_size_y_min*cos_tethas_2[i] 
+
+    return structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
+
 def potential(thetas: np.ndarray) -> float:
     """
     Calculate the energy of a system given the angles
