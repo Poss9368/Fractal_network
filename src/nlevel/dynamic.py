@@ -191,26 +191,53 @@ def conjudate_gradient(thetas: np.ndarray, lambda_restriction: float) -> np.ndar
 
 def example_animation():
     # Ángulos iniciales del sistema
-    n = 3  # Número de ángulos
+    n = 4  # Número de ángulos
     thetas_init = np.zeros(n)  # Inicializar con ceros
     thetas_init[-1] = np.pi / 512  # Último ángulo en radianes
+
+    def compute_aj(j, a1=1, a2=5):
+            if j == 1:
+                return a1
+            elif j == 2:
+                return a2
+            else:
+                a_prev = a1
+                a_curr = a2
+                for _ in range(3, j + 1):
+                    a_next = 6 * a_curr - 4 * a_prev
+                    a_prev, a_curr = a_curr, a_next
+                return a_curr
+    
+    aj_max = compute_aj(n)
+
 
     # Rango de valores para lambda_restriction
     lambda_values = np.logspace(-2, 1.7, 200) 
 
-    fig, ax = plt.subplots()
+    fig, (ax1, ax2) = plt.subplots(
+        1, 2, figsize=(10, 5),
+        gridspec_kw={'width_ratios': [5.2, 4.8]}
+    )
 
     def update(frame):
         lambda_restriction = lambda_values[frame]
         thetas = conjudate_gradient(thetas_init, lambda_restriction)
-        ax.clear()
-        structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = print_structure(thetas, ax)
-        ax.set_title(f"Lambda = {lambda_restriction:.2e}\nLx = {structure_size_x_max:-2f} \nArea = {structure_size_x_max * structure_size_y_max:.2f}")
+        ax1.clear()
+        structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = print_structure(thetas, ax1)
+        ax1.set_title(f"Lambda = {lambda_restriction:.2e}\nLx = {structure_size_x_max:.2f} \nArea = {structure_size_x_max * structure_size_y_max:.2f}")
+
+        ax2.clear()
+        x_vals = np.arange(1, len(thetas)+1)
+        y_vals = thetas/thetas[0]
+        ax2.plot(x_vals, y_vals, 'o')
+        ax2.set_title(r"$\theta_i / \theta_1$", fontsize=14)
+        ax2.set_xticks(x_vals)
+        ax2.set_xlabel("i")
+        ax2.set_ylim([0, aj_max * 1.1])
+        for i, y in zip(x_vals, y_vals):
+            ax2.text(i, y, f"{y:.2f}", fontsize=9, ha='left', va='bottom')
+
     anim = FuncAnimation(fig, update, frames=len(lambda_values), interval=30)
-
-    ## guardar la animación en formato gif"
-    ##anim.save('dynamic_exactly.gif', writer='pillow', fps=50)
-
     plt.show()
 
 
