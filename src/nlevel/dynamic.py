@@ -23,16 +23,16 @@ def structure_size(thetas: np.ndarray) -> tuple:
     cos_tethas_2 = np.cos(thetas * 0.5)
     sin_tethas_2 = np.sin(thetas * 0.5)
 
-    structure_size_y_max = 1.0/2**n
-    structure_size_y_min = 1.0/2**n
-    structure_size_x_max = 1.0/2**n
-    structure_size_x_min = 1.0/2**n
+    structure_size_y_max = 1.0
+    structure_size_y_min = 1.0
+    structure_size_x_max = 1.0
+    structure_size_x_min = 1.0
     for i in range(n):
-        structure_size_y_max = 2*sin_tethas_2[i]*structure_size_x_max + 2*structure_size_y_min*cos_tethas_2[i] 
-        structure_size_x_min = 2*structure_size_y_min*sin_tethas_2[i]
+        structure_size_y_max = sin_tethas_2[i]*structure_size_x_max + structure_size_y_min*cos_tethas_2[i] 
+        structure_size_x_min = structure_size_y_min*sin_tethas_2[i]
 
-        structure_size_x_max = 2*sin_tethas_2[i]*structure_size_y_min + 2*structure_size_x_max*cos_tethas_2[i] 
-        structure_size_y_min = 2*structure_size_y_min*cos_tethas_2[i] 
+        structure_size_x_max = sin_tethas_2[i]*structure_size_y_min + structure_size_x_max*cos_tethas_2[i] 
+        structure_size_y_min = structure_size_y_min*cos_tethas_2[i] 
 
     return structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
 

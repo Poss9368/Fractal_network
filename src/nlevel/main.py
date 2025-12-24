@@ -1,12 +1,13 @@
 from pathlib import Path
 import numpy as np
 from dynamic import conjudate_gradient, structure_size
+from secon_order_dynamic import theta_second_order_calculation
 
 PATH = Path(__file__).resolve().parent
 RESULTS_PATH = PATH / 'results'
 if __name__ == "__main__":
     # Ángulos iniciales del sistema
-    n = 16  # Número de ángulos
+    n = 1024.  # Número de ángulos
     thetas = np.zeros(n)  # Inicializar con ceros
     
     # Rango de valores para lambda_restriction
@@ -18,11 +19,10 @@ if __name__ == "__main__":
     results = []
 
     for lambda_restriction in lambda_values:
-        thetas = conjudate_gradient(thetas, lambda_restriction)
+        thetas = theta_second_order_calculation(n, lambda_restriction)
         structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = structure_size(thetas)
         area = structure_size_x_max * structure_size_y_max
         results.append((lambda_restriction, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min, area))
-
 
     # Imprimir los resultadospython main.py en .csv y con cabecera
     file_name = f"{n}_angles_output.csv"
