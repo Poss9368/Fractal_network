@@ -37,7 +37,7 @@ def structure_size(thetas: np.ndarray) -> tuple:
     return structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
 
 @njit
-def potential_by_level(thetas: np.ndarray) -> np.ndarray:
+def potential_by_level(thetas: np.ndarray, k_i: np.ndarray) -> np.ndarray:
     """
     Calculate the energy of any level of the system given the angles.
 
@@ -51,7 +51,7 @@ def potential_by_level(thetas: np.ndarray) -> np.ndarray:
     sum_thetas = 0.0
     energy_by_levels = np.zeros(n)
     for i in range(n):
-        mutiplicidad = 4**(n-i) 
+        mutiplicidad = 4**(n-i) * k_i[i]
         energy_by_levels[i] = mutiplicidad * (thetas[i]**2 + sum_thetas**2)
         sum_thetas += thetas[i]
     return energy_by_levels
