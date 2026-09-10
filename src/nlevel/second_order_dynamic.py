@@ -1,15 +1,16 @@
 from matplotlib import pyplot as plt
-from matplotlib.animation import FuncAnimation
+from matplotlib.animation import FuncAnimation, PillowWriter
 import numpy as np
 
 from dynamic import potential_by_level
+from old.dynamic_exactly import structure_size
 from plot_nlevels import print_structure
 
 import math
 from scipy.optimize import brentq
 
-def solve_thetaN_brent(fL, kN):
-    f = lambda th: 8.0*kN*th - 0.5*fL*((math.cos(th/2)-math.sin(th/2))/(math.cos(th/2)+math.sin(th/2)))
+def solve_thetaN_brent(fL, k_N):
+    f = lambda th: 8.0*k_N*th - 0.5*fL*((math.cos(th/2)-math.sin(th/2))/(math.cos(th/2)+math.sin(th/2)))
     return brentq(f, 1e-16, math.pi/2)
 
 def compute_r_s_vectors(N, lambda_restriction, k_i, B_fn=None):
@@ -125,16 +126,15 @@ def theta_second_order_calculation(N, lambda_restriction, k_i):
 
 def example_animation():
     n = 4  # Número de ángulos
-    k_i = [0.01, 1, 1, 1]  # Constantes elásticas para cada nivel
+    k_i = [1, 1, 1, 1]  # Constantes elásticas para cada nivel
     # k_i = []
     # for i in range(n):
-    #     k_i.append(2**(n-i-1))
-    # k_i = k_i/np.max(k_i) 
+    #     k_i.append(4**(n-i-1) * (n-i)**2)
+    k_i = k_i/np.max(k_i)
     print("k_i:", k_i)
     
-
     # Rango de valores para lambda_restriction
-    lambda_values = np.logspace(-1, 3.0, 60) 
+    lambda_values = np.logspace(-3, 3.0, 60) 
 
     fig, (ax1, ax2) = plt.subplots(
         1, 2, figsize=(10, 5),
@@ -145,10 +145,10 @@ def example_animation():
         lambda_restriction = lambda_values[frame]
         thetas, S, Q, Ak, theta_1, theta_N= theta_second_order_calculation(n, lambda_restriction, k_i)
         energy_by_levels = potential_by_level(np.asarray(thetas, dtype=float), np.asarray(k_i, dtype=float))
+        energy_by_levels = energy_by_levels / np.sum(energy_by_levels)
         ax1.clear()
         structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = print_structure(thetas, ax1, square_size=1.0/2**n)
         ax1.set_title(f"Lambda = {lambda_restriction:.2e}\nLx = {structure_size_x_max:.2f} \nArea = {structure_size_x_max * structure_size_y_max:.2f}")
-
         ax2.clear()
         x_vals = np.arange(1, len(thetas)+1)
         y_vals = energy_by_levels 
@@ -156,12 +156,51 @@ def example_animation():
         ax2.set_title(r"$E_i / E$", fontsize=14)
         ax2.set_xticks(x_vals)
         ax2.set_xlabel("i")
-        ax2.set_ylim([0, 80])
+        ax2.set_ylim([0, 1])
         for i, y in zip(x_vals, y_vals):
             ax2.text(i, y, f"{y:.2f}", fontsize=9, ha='left', va='bottom')
 
     anim = FuncAnimation(fig, update, frames=len(lambda_values), interval=30)
     plt.show()
 
+def example_animation_energy():
+    n = 16  # Número de ángulos
+    k_i = []
+    for i in range(n):
+        k_i.append(1)
+        #k_i.append(2**(-i))
+    k_i = k_i/np.max(k_i) 
+
+    print("k_i:", k_i)
+    
+    # Rango de valores para lambda_restriction
+    lambda_values = np.logspace(-4, 12.0, 60) 
+    fig, ax = plt.subplots(figsize=(10, 4.8))
+
+    def update(frame):
+        lambda_restriction = lambda_values[frame]
+        thetas, S, Q, Ak, theta_1, theta_N= theta_second_order_calculation(n, lambda_restriction, k_i)
+        structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = structure_size(thetas)
+        force = lambda_restriction / structure_size_x_max
+        energy_by_levels = potential_by_level(np.asarray(thetas, dtype=float), np.asarray(k_i, dtype=float))
+        energy_by_levels = energy_by_levels 
+        ax.clear()
+        x_vals = np.arange(1, len(thetas) + 1)
+        y_vals = energy_by_levels/ np.sum(energy_by_levels)
+        ax.plot(x_vals, y_vals, 'o', label=f'f={force:.2e}')
+        ax.set_title(r"$E_i / E$", fontsize=14)
+        ax.set_xticks(x_vals)
+        ax.set_xlabel("i")
+        ax.set_ylim([0, 1])
+        ax.legend(loc='upper left')
+        for i, y in zip(x_vals, y_vals):
+            ax.text(i, y, f"{y:.2f}", fontsize=9, ha='left', va='bottom')
+
+    anim = FuncAnimation(fig, update, frames=len(lambda_values), interval=100)
+    #writer = PillowWriter(fps=10)
+    #anim.save("energy_spectrum_2D.gif", writer=writer, dpi=250)
+    plt.show()
+
 if __name__ == "__main__":
-    example_animation()  
+    #example_animation_energy()
+    example_animation()

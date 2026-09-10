@@ -1,0 +1,1463 @@
+\documentclass[pdflatex, twocolumn, sn-nature]{sn-jnl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{mathrsfs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{siunitx}
+\usepackage{physics}
+\usepackage{xcolor}
+\usepackage{calc}
+\usepackage{tikz}
+
+
+\newcommand{\figlabel}[3]{%
+  % #1 = x position from 0 to 1
+  % #2 = y position from 0 to 1
+  % #3 = label
+  \node[
+    anchor=north west,
+    inner sep=0pt,
+    font=\bfseries
+  ] at (#1,#2) {#3};%
+}
+
+\newsavebox{\stubimagebox}
+\newlength{\stubwidth}
+
+\newcommand{\StubFigure}[5][gray!12]{%
+  % #1 = stub color, optional
+  % #2 = total width
+  % #3 = total height / image height
+  % #4 = stub text
+  % #5 = image file
+  %
+  \sbox{\stubimagebox}{%
+    \includegraphics[height=#3]{#5}%
+  }%
+  %
+  \setlength{\stubwidth}{\dimexpr #2-\wd\stubimagebox\relax}%
+  %
+  \ifdim\stubwidth<0pt
+    \setlength{\stubwidth}{0pt}%
+  \fi
+  %
+  \begingroup
+  \setlength{\fboxsep}{0pt}%
+  \makebox[\linewidth][c]{%
+    \hbox{%
+      \colorbox{#1}{%
+        \parbox[b][#3][c]{\stubwidth}{%
+          \centering
+          \rotatebox{90}{\bfseries #4}%
+        }%
+      }%
+      \usebox{\stubimagebox}%
+    }%
+  }%
+  \endgroup
+}
+
+
+\setcitestyle{super}
+
+\newcommand{\ign}[1]{\textcolor{blue}{\textbf{Ignacio}: #1}}
+
+\newcommand{\bnj}[1]{{\textcolor{red} {\textbf{Benjamin}: #1} }}
+
+
+
+\newcommand{\strain}{\varepsilon_q}
+\newcommand{\thstrain}{\varepsilon_T}
+
+\newcommand{\filtersymb}{A}
+\newcommand{\filter}{\filtersymb_k(\lambda)}
+
+\newcommand{\greensymb}{G}
+\newcommand{\green}{\greensymb_k(\lambda)}
+
+\newcommand{\psd}{S_\alpha(k)}
+
+\newcommand{\thavg}[1]{{\overline{#1}}}
+\newcommand{\qavg}[1]{\langle #1 \rangle_{\theta}}
+
+\newcommand{\thcrossover}{{\lambda_\star}}
+
+\begin{document}
+\title[Non-Hookean mechanics of random chains]{Non-Hookean mechanics of random chains at arbitrarily small strain}
+
+\author[1]{\fnm{Ignacio} \sur{Andrade-Silva}}
+\equalcont{These authors contributed equally to this work.}
+
+\author[2]{\fnm{Benjam\'in} \sur{Pavez}}\email{bipavez@uc.cl}
+\equalcont{These authors contributed equally to this work.}
+
+\author[2]{\fnm{Carlos} \sur{Villarroel}}
+
+\author[1]{\fnm{Claudio} \sur{Falc\'on}}\email{cfalcon@uchile.cl}
+
+\author[2]{\fnm{Gustavo} \sur{D\"uring}}\email{gduring@uc.cl}
+
+\affil*[1]{\orgdiv{Departamento de F\'isica, Facultad de Ciencias F\'isicas y Matem\'aticas},
+\orgname{Universidad de Chile},
+\orgaddress{\city{Santiago}, \country{Chile}}}
+
+\affil[2]{\orgdiv{Facultad de F\'isica},
+\orgname{Pontificia Universidad Cat\'olica de Chile},
+\orgaddress{\city{Santiago}, \country{Chile}}}
+
+\abstract{
+Hooke's law establishes a linear mechanical response of an elastic system when deformed sufficiently close to equilibrium. Here we show that this linear regime can become arbitrarily small when deformation proceeds through the progressive straightening of a geometry containing many spatial scales. We study planar inextensible filaments with prescribed stress-free angular fluctuations, which act as random springs when subjected to tension. Within a continuous elastica description, tensile loading filters the reference geometry mode by mode, beginning at the longest wavelengths. For power-law angular spectra $S_n\propto n^\alpha$, this spectral filtering produces the constitutive law $F\sim\varepsilon^{2/(1+\alpha)}$ for $-1<\alpha<1$, where $\varepsilon$ is the strain. Every finite-bandwidth filament remains Hookean at sufficiently small strain, but its linear window decreases as $\varepsilon_\times\sim\eta^2M^{-(1+\alpha)}$, where $M$ is the spectral cutoff and $\eta^2$ is the angular variance. Experiments on three-dimensional printed beams and simulations of stochastic discrete chains support the predicted filtering mechanism and finite-size crossover. These results identify quenched multiscale geometry as a constitutive ingredient that can be used to design tunable non-Hookean mechanical responses from locally linear elastic elements.
+}
+
+\maketitle
+
+\section*{Main}
+
+% Hooke's law is a fundamental paradigm in mechanics and physics. In its simplest form, it states that the force exerted on an elastic system is proportional to its deformation. More generally, if the elastic energy is analytic near a stable equilibrium, the leading-order force is linear in strain \cite{LandauLifshitzElasticity}. This relation underlies linear elasticity, in which stress and strain are proportional for sufficiently small deformations. Departures from linear response are nevertheless widespread at finite strain and may arise from material nonlinearities \cite{ogden1997non}, geometric nonlinearities \cite{AudolyPomeau}, elastic instabilities \cite{cerda2003geometry}, or irreversible processes such as plasticity, viscoelasticity and damage \cite{fung2013biomechanics}.
+
+Hooke’s law is a fundamental principle in mechanics and physics. In its simplest form, it states that the force exerted on an elastic system is proportional to its deformation. In linear elasticity theory, if the elastic energy is analytical about a stable equilibrium, the leading-order stresses are proportional to strains~\cite{LandauLifshitzElasticity}. This linear relation is generally expected in most elastic materials for sufficiently small deformations.
+Departures from linear response are nevertheless widespread at finite strain and may arise from material nonlinearities \cite{ogden1997non}, geometric nonlinearities \cite{AudolyPomeau}, elastic instabilities \cite{cerda2003geometry}, or irreversible processes such as plasticity, viscoelasticity and damage \cite{fung2013biomechanics}.
+
+% Nonlinear elastic responses are common in soft materials, where force-extension curves typically depart from Hooke's law at finite strains~\cite{Storm2005,Onck2005,BroederszMacKintosh2014,Kang2009}. These nonlinear responses are typically caputred by hyperelastic models, which are either phenomenonlogical or derived from statistical mechanics of polymer chains~\cite{arruda1993three}. 
+% Polymer chains, rubber-like materials, semiflexible biopolymer networks, fibrous tissues and architected filamentary materials can exhibit pronounced strain stiffening, softening or anomalous elasticity \cite{Bustamante2003,deGennesScaling,RubinsteinColby,MarkoSiggia1995,MacKintosh1995,Head2003,Storm2005,Onck2005,Sheinman2012,Bertoldi2017}. 
+% However, in many systems the linear regime is singular or practically inaccessible. Soft biological tissues typically exhibit nearly exponential laws, with zero Young's modulus at vanishing stress~\cite{fung2013biomechanics}. Other examples include mechanical metamaterials with floppy or nearly zero-energy modes \cite{Bertoldi2017} and marginal fibre networks whose rigidity emerges under strain or stress \cite{Sharma2016,Licup2015}.
+
+Nonlinear elastic responses are common in soft and disordered
+materials, where force--extension curves often depart strongly from
+Hooke's law at finite strain~\cite{Storm2005,Onck2005,
+BroederszMacKintosh2014,Kang2009}. Polymer chains, rubber-like solids,
+semiflexible biopolymer networks, fibrous tissues and architected
+filamentary materials can display strain stiffening, strain softening
+or other anomalous constitutive responses
+\cite{Bustamante2003,deGennesScaling,RubinsteinColby,MarkoSiggia1995,
+MacKintosh1995,Head2003,Sheinman2012,Bertoldi2017}.
+In most of these systems, however, the nonlinear response emerges
+only beyond an initial Hookean regime. There are notable
+exceptions in which this linear window is singular or practically
+inaccessible. Soft biological tissues frequently exhibit strongly
+nonlinear, approximately exponential stress--strain relations, with
+a compliant initial response followed by pronounced stiffening
+\cite{fung1967elasticity}. Related behavior arises in mechanical metamaterials
+with floppy or nearly zero-energy modes \cite{Bertoldi2017}, and in
+marginal fibre networks whose rigidity emerges only under applied
+strain or stress \cite{Broedersz2011,Sheinman2012,Sharma2016}. 
+%These examples show that a linear regime need not be readily observable, but they generally involve collective modes, marginality or nonlinear microscopic constituents. 
+%This raises the question of whether an inaccessible Hookean regime can arise from geometry alone, even when the local elastic response remains linear.
+
+% Here we address this question using planar inextensible filaments whose
+% stress-free tangent angle contains fluctuations distributed over
+% multiple spatial scales.
+
+Here we ask how non-Hookean elasticity at small strain can emerge from locally linear elastic elements through geometry alone. 
+We consider planar inextensible filaments whose stress-free tangent angle contains fluctuations distributed over multiple spatial scales. 
+The essential observation is illustrated in Fig.~\ref{fig:experiment}: 
+a filament carrying a single dominant wavelength displays an approximately linear response over most of its extension range, whereas a filament containing many wavelengths develops a broad quadratic regime (Fig.~\ref{fig:experiment}c,d). 
+Under tension, the filament extends by reorienting its tangent field rather than by stretching its material backbone. Long-wavelength modes are suppressed first, followed progressively by shorter-wavelength modes, so that the available geometrical compliance decreases continuously during loading.
+
+We formulate this mechanism using a continuous planar elastica with prescribed
+stress-free curvature. The resulting force--extension law depends only
+on the angular spectrum of the reference geometry. We first show how
+the progressive filtering of individual modes combines their compliances into an emergent nonlinear response. 
+We then demonstrate that power-law spectra generate a family of tunable constitutive laws and that the Hookean strain window collapses as the spectral bandwidth increases. 
+Experiments on 3D printed beams test the continuous theory directly, while numerical simulations on stochastic torsional-hinge chains provide a discrete realization with much broader spectral bandwidth.
+The agreement between these realizations shows that geometric nonlinearity combined with the presence of multiple scales is key to understand nonlinear elastic responses at vanishingly small strains.
+
+%We formulate this mechanism using a continuous elastica with prescribed stress-free curvature. The resulting force--extension law depends only on the angular spectrum of the reference geometry. For power-law spectra, we obtain a family of tunable non-Hookean constitutive laws and show that the Hookean strain window collapses as the spectral bandwidth increases. Experiments on 3D printed beams test the continuous theory directly, while stochastic chains of torsional hinges provide a discrete realization with much broader spectral bandwidth. The agreement between these realizations demonstrates that the mechanical response is controlled by spectral geometry rather than by a particular microscopic model.
+
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/Fig1.pdf}
+    \caption{\textbf{Multiscale geometry produces non-Hookean elasticity in slender filaments.}
+    \textbf{a}, A 3D- printed filament with prescribed stress-free centreline subjected to tensile loading. The initial and deformed projected lengths are denoted by $L_{0x}$ and $L_x$, respectively. The specimen has total arc length $L$, width $w$, thickness $t$ and bending modulus $B=EI$, with $I=wt^3/12$.
+    \textbf{b}, Local tangent angles in the stress-free, $\theta_0(s)$, and deformed, $\theta(s)$, configurations.
+    \textbf{c}, Force--strain response of a filament carrying a single spatial mode. Symbols show the experimental response and the solid line shows the prediction obtained from Eq.~\eqref{eq:spectral_response_main} with a single non-zero $S_n$. The response remains approximately linear until the final approach to full extension.
+    \textbf{d}, Response of a broadband filament with an approximately flat angular spectrum and cutoff $M=50$. The solid curve is the full spectral prediction, while the slope guides indicate the initial Hookean regime and the intermediate quadratic regime.
+    \textbf{e}, Experimental and theoretical evolution of the retained modal spectrum, $S_n(\lambda)/S_n(0)$. Increasing tension progressively removes long-wavelength modes before short-wavelength modes. Experimental spectra are smoothed only for visualization, as described in Methods.}
+    \label{fig:experiment}
+\end{figure*}
+
+\section*{Spectrum-controlled nonlinear elasticity}
+\label{sec:main_theory}
+
+We consider a planar inextensible filament of arc length $L$, bending modulus $B$, stress-free tangent angle $\theta_0(s)$ and deformed tangent angle $\theta(s)$, where $s\in[0,L]$ is arc length. The filament is subjected to a tensile force $F$ parallel to the $x$ direction. 
+
+Introducing the normalized coordinate $\bar s=s/L$ and the dimensionless force $\lambda\equiv F L^2/B$, the equilibrium equation of the filament in the small-slope regime can be written as\cite{LandauLifshitzElasticity,AudolyPomeau}
+\begin{equation}
+\theta^{\prime\prime}-\theta^{\prime\prime}_0-\lambda\theta=0.
+\label{eq:elastica_linear}
+\end{equation}
+where primes denote derivatives with respect to $\bar{s}$.
+For analytical convenience, we use periodic boundary conditions, $\theta(0)=\theta(L)$ and $\theta'(0)=\theta'(L)$. 
+Additionally, we impose both ends of the filament lie on the x-axis: $y(L)\equiv \int^L_0 \sin{\theta(s)} \dd s =0$.
+
+To analyze the presence of multiple scales in the system, we prescribe the stress-free geometry $\theta_0$ through the one-sided spectrum $S_n$:
+\begin{equation}
+\theta_0(\bar{s})
+=
+\sum_{n=1}^{M}
+2\sqrt{S_n}
+\cos\left(
+2\pi n \bar{s}+\varphi_n
+\right).
+\label{eq:geometry_main}
+\end{equation}
+Here, we have adopted the normalization $2\sum_{n=1}^{M}S_n
+=
+\left\langle\theta_0^2\right\rangle
+\equiv\eta^2$, where $M$ is a spectral cutoff, $\eta$ is the root-mean-square reference angle, and $\langle\cdot\rangle=\int_0^1(\cdot)\,\dd \bar{s}$. 
+The phases $\varphi_n$ are arbitrary.
+We have disregarded the zero mode, as under the small-slope approximation and alignment along the $x$-axis, $y(L)\approx \int^1_0 \theta_0(\bar{s}) \dd \bar{s} = \theta_{0,0} = 0$.% $\theta_0(\bar{s})=\sum_n\theta_{0,n}\psi_n(\bar{s})$
+
+Expanding $\theta(\bar{s})=\sum_n\theta_n \cos\left(2\pi n \bar{s}+ \varphi_n\right)$  %where $\psi_n(\bar{s})=\cos\left(2\pi n \bar{s}+ \varphi_n\right)$.
+and replacing in Eq.~\eqref{eq:elastica_linear} we find that each mode amplitude is attenuated according to
+\begin{equation}
+\theta_n
+=
+\frac{\gamma_n}{\gamma_n+\lambda}
+\theta_{0,n} .
+\label{eq:filter_main}
+\end{equation}
+where $\gamma_n=(2\pi n)^2$.
+Note that mode $n$ is substantially attenuated when $\lambda$ becomes comparable to $(2\pi n)^2$. 
+Thus, tension progressively straightens the filament, suppressing long wavelengths before short wavelengths.
+
+We define the engineering strain, relative to the stress-free projected length, $\varepsilon=(L_x-L_{0x})/L_{0x}$, where $L_x=\int_0^L\cos\theta\,ds$ and $L_{0x}=\int_0^L\cos\theta_0\,ds$ are the projected filament length in the rest and deformed configurations, respectively. 
+Up to leading order in the angular variance $\varepsilon \simeq \left(
+\left\langle\theta_0^2\right\rangle
+-
+\left\langle\theta^2\right\rangle
+\right)/2$.
+% \begin{equation}
+% \varepsilon
+% \simeq
+% \frac{1}{2}
+% \left(
+% \left\langle\theta_0^2\right\rangle
+% -
+% \left\langle\theta^2\right\rangle
+% \right).
+% \label{eq:strain_variance_main}
+% \end{equation}
+%Combining Eqs.~\eqref{eq:filter_main} 
+Using Eq.~\eqref{eq:filter_main}, we obtain
+\begin{equation}
+\varepsilon(\lambda)
+\simeq
+\sum_{n=1}^{M}
+S_n
+\left[
+1-
+\left(
+\frac{(2\pi n)^2}{(2\pi n)^2+\lambda}
+\right)^2
+\right].
+\label{eq:spectral_response_main}
+\end{equation}
+Equation~\eqref{eq:spectral_response_main} is the central result of the spectral description: within the small-slope approximation, the macroscopic response is determined by the spectrum of the stress-free geometry.
+
+
+\begin{figure*}[!ht]
+    \centering
+    \includegraphics[width=170mm]{Figures/fig_mechanism.pdf}
+    \caption{\textbf{Nonlinear elasticity emerges from the progressive withdrawal of modal compliance.}
+\textbf{a,} Illustration of the mechanism for a geometry containing two well-separated modes. The retained fraction of mode \(n\),
+\(R_n^2=[\gamma_n/(\gamma_n+\lambda)]^2\) (coloured curves, right axis), decreases when the applied load becomes comparable to its elastic eigenvalue, \(\lambda\sim\gamma_n\). Each mode contributes
+\(c_n(\lambda)=2S_n\gamma_n^2/(\gamma_n+\lambda)^3\)
+to the differential compliance
+\(K^{-1}=d\varepsilon/d\lambda=\sum_n c_n\).
+The progressive suppression of the long-wavelength mode therefore increases the tangent stiffness from \(K_{1+2}\), when both modes contribute, towards \(K_2\), when only the shorter-wavelength mode remains active. At larger loads, suppression of the last mode produces the final inextensibility-driven stiffening.
+\textbf{b--d,} Force--strain curves (top) and retained modal fractions
+\(|\theta_n|^2/(4S_n)=R_n^2\) (bottom) for geometries containing \(N_s=2\), \(3\), and \(4\) separated spatial scales. For two scales, the filtering of the longest wavelength produces two approximately linear branches with different tangent stiffnesses; dotted lines show their extrapolation at constant stiffness. Adding further scales causes the corresponding filtering intervals to overlap, generating a sequence of progressively shorter linear branches in \textbf{c} and a smooth nonlinear response in \textbf{d}. For \(N_s=4\), the overlapping filtering cascade produces an extended regime consistent with \(\lambda\sim\varepsilon^2\), highlighted by the shaded region.
+\textbf{e,} Configurations of a discrete chain with \(N=4096\) links during the filtering cascade. Grey and black curves show the reference and loaded configurations, respectively. At \(\lambda=10\gamma_n\), modes up to scale \(n\) have been substantially suppressed. Dotted boxes show progressively smaller observation windows containing \(2048\), \(256\), \(64\), and \(16\) links; transverse displacements are magnified by a factor of ten. \ign{TO DO: Quitar las barras de $\gamma$ en toda la figura. \quad Las guías visuales en panel c no tienen pendiente 1. \quad Definir $K_{1+2+\dots}$ explícitamente ya sea en el caption o en la figura . \quad En los graficos 3D de b-d, es $n/N$ o $k/N$?. En el eje vertical puede ser $S_n(\lambda)/S_n(0)$, tal como lo uso en la fig. 2, o bien podríamos usar directamente $R_n^2$ que ya está definido. \quad En e, reemplazar \textit{bond} por \textit{link}.}}
+    \label{fig:spectral-elasticity-mechanism}
+\end{figure*}
+
+For a geometry containing a single wavelength, Eq.~\eqref{eq:spectral_response_main} produces a clear linear force--strain relation over most of the available extension range (Fig.~\ref{fig:experiment}c). By contrast, a broadband spectrum exhibits a short Hookean regime followed by an extended nonlinear response (Fig.~\ref{fig:experiment}d) that extends up to near maximum extension. The simultaneous evolution of the angular spectrum confirms that this nonlinearity is associated with the progressive removal of geometrical modes rather than with a strongly nonlinear local material law (Fig.~\ref{fig:experiment}e).
+
+As illustrated in Fig.~\ref{fig:spectral-elasticity-mechanism}, the filtering mechanism can be interpreted as the progressive withdrawal of modal compliance. Differentiating Eq.~\eqref{eq:spectral_response_main} gives the differential compliance
+\begin{equation*}
+K^{-1}(\lambda)
+\equiv
+\frac{d\varepsilon}{d\lambda}
+=
+2\sum_{n=1}^{M}
+S_n
+\frac{\gamma_n^2}{(\gamma_n+\lambda)^3}.
+\label{eq:compliance_main}
+\end{equation*}
+Thus, each mode contributes $c_n(\lambda)=2S_n \gamma_n^2/(\gamma_n+\lambda)^3$ to the total compliance. For loads well below its eigenvalue,
+\(\lambda\ll\gamma_n\), mode \(n\) provides the approximately
+constant contribution \(c_n\simeq 2S_n/\gamma_n\). When
+\(\lambda\) becomes comparable to \(\gamma_n\), its amplitude and
+compliance decrease rapidly, and the filament becomes stiffer. For a geometry containing a few well-separated modes, these
+successive filtering events produce approximately linear branches
+with different tangent stiffnesses (Fig.~\ref{fig:spectral-elasticity-mechanism}a,b). After the
+longest-wavelength mode has been suppressed, the stiffness is set
+by the modes that remain active. Adding further spatial scales
+introduces additional filtering intervals and progressively shortens
+the individual linear branches (Fig.~\ref{fig:spectral-elasticity-mechanism}c). When the spectrum is
+densely populated, the filtering intervals overlap and the discrete
+changes in stiffness merge into a smooth nonlinear constitutive law
+(Fig.~\ref{fig:spectral-elasticity-mechanism}d). The same cascade is visible directly in real space:
+increasing tension first removes large-scale undulations and then
+progressively finer geometrical features (Fig.~\ref{fig:spectral-elasticity-mechanism}e).
+
+\section*{Power-law spectra and constitutive exponents}
+\label{sec:power_law}
+
+To determine how the distribution of scales controls the mechanical response, we prescribe power-law spectra $S_n = \eta^2
+n^\alpha/(2H_{M,\alpha})$, where $H_{M,\alpha}
+\equiv
+\sum_{m=1}^{M}m^\alpha$.
+Positive $\alpha$ assigns greater weight to short wavelengths, whereas negative $\alpha$ favours long wavelengths.
+
+At forces below the first elastic eigenvalue, $\lambda\ll 1$, expanding Eq.~\eqref{eq:spectral_response_main} gives
+\begin{equation}
+\varepsilon
+\simeq
+C_{\mathrm{lin}}\lambda,
+\qquad
+C_{\mathrm{lin}}
+=
+\frac{\eta^2}{4\pi^2}
+\frac{H_{M,\alpha-2}}{H_{M,\alpha}} .
+\label{eq:linear_main}
+\end{equation}
+Every filament with finite $M$ is therefore Hookean sufficiently close to the stress-free state.
+
+A distinct nonlinear regime appears when the mode $n_\lambda$ that is closest to $\sqrt{\lambda}/(2\pi)$ lies well within the range $1 < n_\lambda < M$ of a densely populated spectrum, or, equivalently, $(2\pi)^2 \ll \lambda \ll (2\pi M)^2$.
+In this regime, the sum in Eq.~\eqref{eq:spectral_response_main} can be approximated by an integral, yielding, for $-1<\alpha<1$, 
+\begin{equation}
+\varepsilon
+\simeq
+C_\alpha
+\eta^2
+M^{-(1+\alpha)}
+\lambda^{(1+\alpha)/2},
+\label{eq:nonlinear_main}
+\end{equation}
+where $C_\alpha$ is a constant that only depends on $\alpha$ (Methods).
+% \begin{equation}
+% C_\alpha
+% =
+% \frac{(1+\alpha)(3+\alpha)\pi}
+% {8(2\pi)^{1+\alpha}
+% \cos(\pi\alpha/2)} .
+% \label{eq:Calpha_main}
+% \end{equation}
+Therefore, $\lambda \sim M^2 \varepsilon^\beta$, with $\beta= 2/(1+\alpha)$.
+% The corresponding constitutive law is
+% \begin{equation}
+% \lambda
+% \simeq
+% M^2
+% \left(
+% \frac{\varepsilon}{C_\alpha\eta^2}
+% \right)^{2/(1+\alpha)} .
+% \label{eq:constitutive_main}
+% \end{equation}
+A flat spectrum, $\alpha=0$, produces the quadratic law $\lambda\propto\varepsilon^2$ (Fig.~\ref{fig:experiment}\textbf{d}). Within the interval $-1<\alpha<1$, increasing the relative weight of short wavelengths lowers $\beta$, whereas increasing the weight of long wavelengths raises it.
+Figure~\ref{fig:spectral-law}\textbf{a}--\textbf{b} shows experimental data and finite element simulations of filaments  generated with $M=50$ with prescribed spectra $\alpha=-1/3$ and $+1/3$, showing nonlinear responses with exponents $\beta=3$ and $\beta=3/2$, respectively. 
+These results show it is possible to design, with slight changes in the stress-free geometry, \textit{springs}-like filaments with tunable power-law responses.
+
+By matching the Hookean and spectral regimes we find the crossover strain $\varepsilon_\times \sim \eta^2M^{-(1+\alpha)}$, whereas the crossover force $\lambda_\times$ is set by the longest wavelength and is therefore independent of $M$ (Fig.~\ref{fig:spectral-law}\textbf{f},\textbf{g}).
+% \begin{equation}
+% \lambda_\times=O(1),
+% \qquad
+% \varepsilon_\times
+% \sim
+% \eta^2M^{-(1+\alpha)} .
+% \label{eq:crossover_main}
+% \end{equation}
+The crossover strain decreases algebraically as new short-wavelength modes are added. Consequently, the non-Hookean law extends towards arbitrarily small strain in the $M\rightarrow\infty$ limit.
+Figures~\ref{fig:spectral-law}d-e test these predictions over a broad range of spectral bandwidths using discrete chains with \(N=10^4\) links and
+\(50\leq M\leq5000\).
+
+%show a robust agreement between the predicted exponents and crossovers and numerical simulations of discrete chains made with $M=5000$ and $N=10^4$ links.
+
+Within the interval $-1<\alpha<1$, the constitutive exponent $\beta=2/(1+\alpha)$ can in principle become arbitrarily large as $\alpha\to-1^{+}$. However, the crossover strain simultaneously increases according to $\varepsilon_{\times}\sim\eta^{2}M^{-(1+\alpha)}$, so higher exponents are expressed over progressively narrower nonlinear windows at fixed $M$. This trade-off is not fundamental, since increasing the spectral bandwidth shifts the crossover back to smaller strain, although increasingly large values of $M$ are required as $\alpha$ approaches $-1$.
+
+For spectral exponents outside the range $-1<\alpha<1$, the scale-free power-law regime is replaced by cutoff-dominated behaviors (Methods). The marginal case $\alpha=-1$ produces an approximated exponential constitutive law of the form $\lambda\sim M^{4\varepsilon/\eta^2}$ (Fig.~\eqref{fig:spectral-law}\textbf{f}). For $\alpha<-1$ one recovers a linear response dominated by the longest wavelengths. Conversely, $\alpha=1$ yields logarithmic corrections to an otherwise linear response, while for $\alpha>1$ the shortest wavelengths dominate and the response remains asymptotically Hookean. 
+
+%We refer to this load-dependent composition of geometrical modal compliances as \emph{spectral elasticity}.
+
+
+\begin{figure*}[!t]
+    \centering
+    \includegraphics[width=170 mm]{Figures/fig_law.pdf}
+    \caption{\textbf{Spectral form and spectral bandwidth set the nonlinear response.}
+\textbf{a,} Prescribed quenched spectra \(S_m\propto m^\alpha\) and
+representative unloaded centre-lines for \(M=50\).
+\textbf{b,} Spectral theory (dashed), finite-element calculations (solid) and
+experiments (circles) for \(\alpha=+1/3\) and \(-1/3\). Grey segments indicate
+the predicted exponents \(\beta=3/2\) and \(3\). Whiskers show the load--unload
+span.
+\textbf{c,} Fixed-phase responses at \(M=5000\) and \(N=10{,}000\), showing the
+crossover from the finite-chain linear response to the spectrum-dependent
+nonlinear branches. Diamonds mark the crossover. Inset: varying \(M\) at
+\(\alpha=0\), expressed as \(\lambda/M^2\); the quadratic guide is shown for
+reference.
+\textbf{d,e,} Crossover strain and load as functions of spectral bandwidth.
+\textbf{f,} Exponential and linear--logarithmic marginal spectra. Solid,
+dashed and dotted curves denote chain, modal and prescribed responses,
+respectively.}
+    \label{fig:spectral-law}
+\end{figure*}
+
+\section*{Discussion and outlook}
+\label{sec:discussion}
+
+Our results identify a minimal route to non-Hookean elasticity at arbitrarily small strains. Every filament with finite spectral bandwidth is Hookean sufficiently close to its stress-free configuration. However, when the reference geometry angular fluctuations over an increasing number of scales, the Hookean window collapses, and a nonlinear regime appears at smaller strains.
+
+The mechanism is purely geometric. Because the filament is inextensible, extension occurs through reorientation of the tangent field. Tension filters the quenched geometry from long to short wavelengths, progressively depleting the set of modes that can contribute to extension. The effective compliance is therefore load dependent even though the bending energy remains quadratic in local curvature deviations.
+
+For angular spectra of the form $S_n\propto n^\alpha$, in the range $-1<\alpha<1$, produces $\lambda\propto\varepsilon^{2/(1+\alpha)}$. 
+The flat-spectrum case gives the quadratic response $\lambda \sim \varepsilon^2$.
+Therefore, the exponent can be tuned by redistributing geometrical variance across scales. 
+
+The marginal case $\alpha=-1$ produces an exponential law $\lambda \sim M^{4\varepsilon/\eta^2}$. Many biological tissue exhibit nearly exponential elastic tensile responses. This suggests that a specific distribution of length scales in the polymeric network may give rise to such exponential behavior~\cite{fung1967elasticity,fung2013biomechanics}. 
+The other limit case $\alpha=1$ gives rise to an almost linear relation with a logarithmic correction.
+Spectra outside the interval $-1<\alpha<1$ remain dominated by either the longest or the shortest wavelength, and jumps quickly from the linear response to the regime of maximum stretching, not showing the intermediate nonlinear regime.
+
+The continuous elastica and the discrete torsional-hinge chain represent different microscopic realizations of the same spectral-filtering mechanism. The former describes the printed beams and provides the simplest analytical formulation. The latter enables stochastic geometries, broad spectral bandwidths and thermal fluctuations. Their common long-wavelength behavior shows that the constitutive law is selected by the quenched angular spectrum rather than by the detailed discretization or real-space angle distribution.
+
+The present theory assumes inextensibility, small angular variance, bending-dominated mechanics and negligible self-contact. These assumptions define the regime in which the spectral expression, Eq.~\eqref{eq:spectral_response_main}, is quantitatively valid. Nevertheless, the experiments indicate that the filtering mechanism persists beyond the strict asymptotic small-angle limit. More broadly, the same principle may be relevant to crimped fibres, biological tissues and architected filamentary materials whose stress-free geometry spans multiple spatial scales.
+
+Moreover, we have shown that specific spectral distributions may give rise to exponential laws, which are commonly observed in biological tissues~\cite{fung1967elasticity}. Our minimal model may serves as basis for understanding nonlinear elasticity in complex networks, were typically force chains behave load-bearing disordered filamentary structures when the material is subjected to tension. Citar a McKintosh y la elasticidad cuadratica observada en solidos amorfos. Citar posible alcance a polímeros con geometrias intrinsecas desordeandas.
+Estas ideas podrían usarse para el diseño de metamateriales con múltiples escalas, o jerárquicos, con respuestas programables \cite{zhou2025rippled}.
+ 
+\section*{Methods}
+\label{sec:methods}
+
+\subsection*{Prescribed stress-free geometries}
+\label{sec:geometry_methods}
+%\subsubsection*{Power-law angular spectra}
+The stress-free tangent-angle spectrum was prescribed as
+\begin{equation}
+S_n
+=
+\frac{\eta^2}{2}
+\frac{n^\alpha}{H_{M,\alpha}},
+\qquad
+H_{M,\alpha}
+=
+\sum_{m=1}^{M}m^\alpha,
+\qquad
+1\leq n\leq M.
+\label{eq:spectrum_methods}
+\end{equation}
+%This convention gives $2\sum_{n=1}^{M}S_n=\eta^2$. 
+The exponent $\alpha$ determines the distribution of angular variance across scales, while $M$ determines the upper spectral cutoff.
+
+For continuous fixed-phase geometries,
+\begin{equation}
+\theta_0(s)
+=
+\sum_{n=1}^{M}
+2\sqrt{S_n}
+\cos\left(
+\frac{2\pi ns}{L}+\varphi_n
+\right),
+\label{eq:fixed_geometry_methods}
+\end{equation}
+where the phases $\varphi_n$ are arbitrary phases.
+For all the experiments and simulations in the article the phases $\varphi_n$ were independently sampled from a uniform distribution on $[0,2\pi)$. The reference centre-line was reconstructed from
+\begin{equation}
+\mathbf r_0(s)
+=
+\int_0^s
+\begin{pmatrix}
+\cos\theta_0(u)\\
+\sin\theta_0(u)
+\end{pmatrix}
+\,\dd u .
+\label{eq:centerline_methods}
+\end{equation}
+Geometries containing self-intersections were rejected. %or separations smaller than the printable specimen width
+
+For discrete chains of $N$ equally spaced links,
+\begin{equation}
+\theta_j^{(0)}
+=
+\sum_{n=1}^{M}
+2\sqrt{S_n}
+\cos\left(
+\frac{2\pi nj}{N}+\varphi_n
+\right),
+\qquad
+j=0,\ldots,N-1.
+\label{eq:sampled_geometry_methods}
+\end{equation}
+The node positions were reconstructed recursively as
+\begin{equation}
+\mathbf r_{0,j+1}
+=
+\mathbf r_{0,j}
++
+\ell
+\begin{pmatrix}
+\cos\theta_j^{(0)}\\
+\sin\theta_j^{(0)}
+\end{pmatrix}.
+\end{equation}
+The continuum limit at fixed spectral content corresponds to $N/M\rightarrow\infty$.
+
+% \subsubsection*{Stochastic discrete chains}
+
+% To generate stochastic chains carrying a prescribed spectrum, we first drew a real zero-mean sequence $\{\xi_j\}_{j=0}^{N-1}$ of independent variables. In the simulations shown here, $\xi_j=\pm1$ with equal probability. The discrete Fourier transform was defined by
+% \begin{equation}
+% \widehat{\xi}_n
+% =
+% \sum_{j=0}^{N-1}
+% \xi_j
+% e^{-2\pi i n j/N}.
+% \end{equation}
+% For $1\leq n\leq M$, we assigned
+% \begin{equation}
+% \widehat{\theta}^{(0)}_n
+% =
+% A n^{\alpha/2}
+% \frac{\widehat{\xi}_n}{|\widehat{\xi}_n|},
+% \label{eq:stochastic_spectrum_methods}
+% \end{equation}
+% and imposed Hermitian symmetry, $\widehat{\theta}^{(0)}_{N-n}=\widehat{\theta}^{(0)*}_n$, so that the inverse transform was real. The zero mode and modes above $M$ were set to zero. The normalization $A$ was chosen independently for each realization such that
+% \begin{equation}
+% \frac{1}{N}
+% \sum_{j=0}^{N-1}
+% \left(\theta_j^{(0)}\right)^2
+% =
+% \eta^2.
+% \end{equation}
+% Because the factor $\widehat{\xi}_n/|\widehat{\xi}_n|$ has unit modulus, each realization carries the prescribed modal power $|\widehat{\theta}^{(0)}_n|^2\propto n^\alpha$. The random seed determines only the modal phases.
+
+\subsection*{Continuous elastica}
+\label{sec:continuous_methods}
+
+The total potential energy of a continuous inextensible filament is given by 
+\begin{equation}
+\mathcal E[\theta]
+=
+\frac{B}{2}
+\int_0^L
+\left(
+\theta'(s)-\theta^\prime_0(s)
+\right)^2
+\,\dd s
+-
+F\int_0^L \cos\theta(s)\,\dd s .
+\label{eq:energy_cont_main}
+\end{equation}
+The first term penalizes deviations from the prescribed stress-free curvature, while the second accounts for the work performed by the tensile force. Variation with respect to $\theta$ gives
+\begin{equation}
+B
+\left(
+\theta''(s)-\theta^{\prime\prime}_0(s)
+\right)
+-
+F\sin\theta(s)
+=
+0.
+\label{eq:nonlinear_elastica_methods}
+\end{equation}
+In the small-slope regime, $\sin\theta\simeq\theta$. Using $\bar s=s/L$ and $\lambda=FL^2/B$ gives
+\begin{equation}
+\theta^{\prime\prime}-\theta^{\prime\prime}_0-\lambda\theta=0.
+\label{eq:linear_elastica_methods}
+\end{equation}
+Using periodic boundary conditions, we expand $\theta_0(\bar{s})=\sum_n\theta_{0,n}\psi_n(\bar{s})$ and $\theta(\bar{s})=\sum_n\theta_n\psi_n(\bar{s})$, with $\psi_n(\bar{s})=\cos\left(2\pi n \bar{s}+ \varphi_n\right)$, where $\varphi_n$ are arbitrary phases. As a result, each mode amplitude is attenuated according to
+\begin{equation}
+\theta_n
+=
+\frac{\gamma_n}{\gamma_n+\lambda}
+\theta_{0,n} .
+\label{eq:filter_main_methods}
+\end{equation}
+
+%\subsubsection*{Force--extension relation}
+The projected lengths in the deformed and reference states are
+\begin{equation}
+L_x=\int_0^L\cos\theta(s)\,\dd s,
+\qquad
+L_{0x}=\int_0^L\cos\theta_0(s)\,\dd s.
+\end{equation}
+For small angular variance,
+\begin{equation}
+L_x
+\simeq
+L
+\left(
+1-\frac{1}{2}\langle\theta^2\rangle
+\right),
+\qquad
+L_{0x}
+\simeq
+L
+\left(
+1-\frac{1}{2}
+\left\langle
+\theta_0^2
+\right\rangle
+\right).
+\end{equation}
+Consequently,
+\begin{equation}
+\varepsilon
+=
+\frac{L_x-L_{0x}}{L_{0x}}
+\simeq
+\frac{1}{2}
+\left(
+\left\langle
+\theta_0^2
+\right\rangle
+-
+\left\langle\theta^2\right\rangle
+\right).
+\label{eq:strain_methods}
+\end{equation}
+Replacing $L/L_{0x}$ by unity introduces only higher-order corrections in the reference angular variance.
+
+Using Parseval's identity and Eq.~\eqref{eq:filter_main_methods},
+\begin{equation}
+\varepsilon(\lambda)
+=
+\sum_{n=1}^{M}
+S_n
+\left[
+1-
+\left(
+\frac{(2\pi n)^2}
+{(2\pi n)^2+\lambda}
+\right)^2
+\right].
+\label{eq:strain_exact_cont_methods}
+\end{equation}
+This expression is exact within the linearized angular theory for finite $M$.
+
+The tangent compliance is
+\begin{equation}
+\frac{\dd\varepsilon}{\dd\lambda}
+=
+2
+\sum_{n=1}^{M}
+S_n
+\frac{(2\pi n)^4}
+{\left[(2\pi n)^2+\lambda\right]^3}.
+\label{eq:compliance_methods}
+\end{equation}
+
+\subsection*{Asymptotic force--extension laws}
+\label{sec:asymptotics_methods}
+
+%\subsubsection*{Hookean regime}
+
+Expanding Eq.~\eqref{eq:strain_exact_cont_methods} at small $\lambda$ gives
+\begin{equation}
+\varepsilon
+=
+C_{\mathrm{lin}}\lambda
++
+O(\lambda^2),
+\end{equation}
+where
+\begin{equation}
+C_{\mathrm{lin}}
+=
+2\sum_{n=1}^{M}
+\frac{S_n}{(2\pi n)^2}
+=
+\frac{\eta^2}{4\pi^2}
+\frac{H_{M,\alpha-2}}
+{H_{M,\alpha}}.
+\label{eq:Clin_methods}
+\end{equation}
+For large $M$, the leading behavior is
+\begin{equation}
+C_{\mathrm{lin}}
+\simeq
+\frac{\eta^2}{4\pi^2}
+\begin{cases}
+\dfrac{\zeta(2-\alpha)}{\zeta(-\alpha)},
+& \alpha<-1,\\[3mm]
+\dfrac{\zeta(3)}{\log M},
+& \alpha=-1,\\[3mm]
+(1+\alpha)\zeta(2-\alpha)M^{-(1+\alpha)},
+& -1<\alpha<1,\\[2mm]
+\dfrac{2\log M}{M^2},
+& \alpha=1,\\[3mm]
+\dfrac{\alpha+1}{\alpha-1}M^{-2},
+& \alpha>1,
+\end{cases}
+\label{eq:Clin_cases_methods}
+\end{equation}
+where $\zeta$ is the Riemann zeta function.
+
+%\subsubsection*{Scale-free regime for \texorpdfstring{$-1<\alpha<1$}{-1 < alpha < 1}}
+
+In the nonlinear regime, $1\ll\lambda\ll M^2$ the sum in Eq.~\eqref{eq:strain_exact_cont_methods} may be approximated by an integral:
+\begin{equation}
+\varepsilon
+\simeq
+\frac{\eta^2(1+\alpha)}{2M^{1+\alpha}}
+\int_0^\infty
+n^\alpha
+\left[
+1-
+\left(
+\frac{(2\pi n)^2}
+{(2\pi n)^2+\lambda}
+\right)^2
+\right]
+\dd n .
+\end{equation}
+%With $n=\sqrt{\lambda}\,u/(2\pi)$,
+This becomes
+\begin{equation}
+\varepsilon
+\simeq
+C_\alpha
+\eta^2
+M^{-(1+\alpha)}
+\lambda^{(1+\alpha)/2},
+\end{equation}
+where
+\begin{equation}
+C_\alpha
+=
+\frac{(1+\alpha)(3+\alpha)\pi}
+{8(2\pi)^{1+\alpha}
+\cos(\pi\alpha/2)}.
+\end{equation}
+The integral converges only for $-1<\alpha<1$. Inverting the relation gives
+\begin{equation}
+\lambda
+\simeq
+M^2
+\left(
+\frac{\varepsilon}
+{C_\alpha\eta^2}
+\right)^{2/(1+\alpha)}.
+\end{equation}
+
+%\subsubsection*{Crossover}
+Matching the Hookean and scale-free asymptotes gives
+\begin{equation}
+\lambda_\times
+\simeq
+D_\alpha,
+\qquad
+\varepsilon_\times
+\simeq
+E_\alpha\eta^2M^{-(1+\alpha)},
+\end{equation}
+with
+\begin{equation}
+D_\alpha
+=
+\left[
+\frac{4\pi^2C_\alpha}
+{(1+\alpha)\zeta(2-\alpha)}
+\right]^{2/(1-\alpha)}
+\end{equation}
+and
+\begin{equation}
+E_\alpha
+=
+\frac{(1+\alpha)\zeta(2-\alpha)}
+{4\pi^2}
+D_\alpha .
+\end{equation}
+The numerical value of the crossover depends on its operational definition, but its scaling with $M$, $\eta$ and $\alpha$ does not.
+
+%\subsubsection*{Flat spectrum}
+
+For $\alpha=0$, we can obtain an exact expression for the strain. With $S_n=\eta^2/(2M)$ and extending in Eq.~\eqref{eq:strain_exact_cont_methods} the limit $M\rightarrow \infty$ gives
+\begin{equation}
+\varepsilon
+\simeq
+\frac{\eta^2}{8M}
+\left[
+\frac{3\sqrt{\lambda}}{2}
+\coth\left(\frac{\sqrt{\lambda}}{2}\right)
+-
+\frac{\lambda}{4}
+\operatorname{csch}^2
+\left(\frac{\sqrt{\lambda}}{2}\right)
+-
+2
+\right].
+\label{eq:alpha_zero_exact_methods}
+\end{equation}
+For $\lambda \gg 1$,
+\begin{equation}
+\varepsilon
+\simeq
+\frac{3\eta^2}{16M}\sqrt{\lambda},
+\end{equation}
+and therefore
+\begin{equation}
+\lambda
+\simeq
+\left(
+\frac{16M\varepsilon}{3\eta^2}
+\right)^2.
+\end{equation}
+
+%\subsubsection*{Marginal and external exponents}
+
+For $\alpha=-1$, the spectrum is normalized by $H_{M,-1}\simeq\log M$. In the range $1\ll\lambda\ll M^2$,
+\begin{equation}
+\varepsilon
+\simeq
+\frac{\eta^2}{2\log M}
+\log\left(
+\frac{\sqrt{\lambda}}{2\pi}
+\right)
++
+O\left(
+\frac{\eta^2}{\log M}
+\right).
+\end{equation}
+Therefore, the corresponding inverse response is exponential:
+% \begin{equation}
+% \lambda
+% \sim
+% \exp\left(
+% \frac{4\varepsilon\log M}{\eta^2}
+% \right).
+% \end{equation}
+\begin{equation}
+\lambda
+\simeq
+(2\pi)^2 M^{4 \varepsilon/\eta^2}.
+\end{equation}
+The Hookean strain window decreases only logarithmically,
+\begin{equation}
+\varepsilon_\times
+\sim
+\frac{\eta^2}{\log M}.
+\end{equation}
+
+For $\alpha<-1$, the spectrum remains dominated by its lowest modes as $M\rightarrow\infty$. The Hookean compliance approaches a finite value, and the response crosses directly from the low-force linear regime towards saturation without developing an infinitesimal scale-free intermediate law.
+
+For $\alpha=1$,
+\begin{equation}
+\varepsilon
+\simeq
+\frac{\eta^2\lambda}{2\pi^2M^2}
+\log\left(
+\frac{2\pi M}{\sqrt{\lambda}}
+\right),
+\qquad
+1\ll\lambda\ll M^2.
+\end{equation}
+The response is linear with a logarithmically varying correction.
+
+For $\alpha>1$, the upper cutoff dominates and
+\begin{equation}
+\varepsilon
+\simeq
+\frac{\eta^2}{4\pi^2}
+\frac{\alpha+1}{\alpha-1}
+\frac{\lambda}{M^2},
+\qquad
+\lambda\ll M^2.
+\end{equation}
+Thus, the scale-free law exists only for $-1<\alpha<1$, while $\alpha=\pm1$ are logarithmic marginal cases.
+
+\subsection*{Discrete torsional-hinge chain}
+\label{sec:discrete_methods}
+
+The discrete model consists of $N$ rigid links of length $\ell$ connected by torsional hinges of stiffness $\kappa$. The prescribed and deformed tangent angles are denoted by $\theta_j^{(0)}$ and $\theta_j$, respectively. We impose periodic boundary conditions and remove the zero mode by requiring
+\begin{equation}
+\sum_{j=0}^{N-1}\theta_j^{(0)}
+=
+\sum_{j=0}^{N-1}\theta_j
+=
+0.
+\end{equation}
+
+The total potential energy is
+\begin{equation}
+\mathcal H
+=
+\frac{\kappa}{2}
+\sum_{j=0}^{N-1}
+\left[
+\nabla\theta_j-\nabla\theta_j^{(0)}
+\right]^2
+-
+F\ell
+\sum_{j=0}^{N-1}
+\cos\theta_j,
+\label{eq:discrete_energy_methods}
+\end{equation}
+where $\nabla\theta_j=\theta_j-\theta_{j-1}$. In the small-angle regime, minimization gives
+\begin{equation}
+\mathcal L_d
+\left(
+\theta-\theta_0
+\right)
++
+\lambda_d\theta
+=
+0,
+\qquad
+\lambda_d
+\equiv
+\frac{F\ell}{\kappa},
+\label{eq:discrete_eq_methods}
+\end{equation}
+where the positive discrete Laplacian is
+\begin{equation}
+(\mathcal L_d\theta)_j
+=
+2\theta_j-\theta_{j+1}-\theta_{j-1}.
+\label{eq:positive_discrete_laplacian}
+\end{equation}
+
+Using the discrete Fourier convention
+\begin{equation}
+\widehat{\theta}_n
+=
+\sum_{j=0}^{N-1}
+\theta_j
+e^{-2\pi \i n j/N},
+\end{equation}
+the eigenvalues are
+\begin{equation}
+\gamma_n^d
+=
+4\sin^2\left(\frac{\pi n}{N}\right).
+\label{eq:discrete_eigenvalues_methods}
+\end{equation}
+The exact discrete filtering law is therefore
+\begin{equation}
+\widehat{\theta}_n
+=
+\frac{\gamma_n^d}
+{\gamma_n^d+\lambda_d}
+\widehat{\theta}_n^{(0)}.
+\label{eq:discrete_filter_methods}
+\end{equation}
+
+The continuum bending modulus is related to the hinge stiffness by $B=\kappa\ell$, while $L=N\ell$. The global force normalization is consequently
+\begin{equation}
+\lambda
+=
+\frac{FL^2}{B}
+=
+N^2\frac{F\ell}{\kappa}
+=
+N^2\lambda_d.
+\label{eq:lambda_mapping_methods}
+\end{equation}
+Defining globally normalized discrete eigenvalues
+\begin{equation}
+\bar\gamma_n^d
+=
+N^2\gamma_n^d
+=
+4N^2\sin^2\left(\frac{\pi n}{N}\right),
+\label{eq:global_discrete_eigenvalue}
+\end{equation}
+Eq.~\eqref{eq:discrete_filter_methods} becomes
+\begin{equation}
+\widehat{\theta}_n
+=
+\frac{\bar\gamma_n^d}
+{\bar\gamma_n^d+\lambda}
+\widehat{\theta}_n^{(0)}.
+\label{eq:global_discrete_filter}
+\end{equation}
+For $n/N\ll1$,
+\begin{equation}
+\bar\gamma_n^d
+=
+4N^2\sin^2\left(\frac{\pi n}{N}\right)
+\simeq
+(2\pi n)^2,
+\end{equation}
+so the discrete filter converges to the continuous result.
+
+The discrete projected length and strain are
+\begin{equation}
+L_x
+=
+\ell\sum_{j=0}^{N-1}\cos\theta_j,
+\qquad
+\varepsilon
+=
+\frac{L_x-L_{0x}}{L_{0x}}.
+\end{equation}
+Within the small-angle approximation,
+\begin{equation}
+\varepsilon
+\simeq
+\sum_{n=1}^{M}
+S_n
+\left[
+1-
+\left(
+\frac{\bar\gamma_n^d}
+{\bar\gamma_n^d+\lambda}
+\right)^2
+\right].
+\label{eq:discrete_strain_global}
+\end{equation}
+Equation~\eqref{eq:discrete_strain_global} retains the exact finite-$N$ dispersion while using the same global force normalization as the continuous theory.
+
+\subsection*{Athermal numerical calculations}
+\label{sec:numerical_methods}
+
+\subsubsection*{Fixed-phase simulations}
+
+The finite-band theory curves in Fig.~\ref{fig:spectral-law}b were evaluated
+from Eq.~\eqref{eq:strain_exact_cont_methods} using $M=50$, $\eta=\pi/4$ and
+$\alpha=\pm1/3$. The prescribed spectra were used without fitting the force--strain curves.
+The discrete calculations in Fig.~\ref{fig:spectral-law}c--e used open chains
+with $N=10{,}000$ links and
+\begin{equation}
+M\in\{50,79,126,199,315,500,792,1256,1991,3155,5000\}
+\end{equation}
+active DCT-II modes. For each $\alpha=-1/3,0,+1/3$, the modal powers were
+\begin{equation}
+S_m=
+\frac{\eta^2}{2}
+\frac{m^\alpha}{\sum_{q=1}^{M}q^\alpha},
+\qquad
+\eta=\frac{\pi}{4}.
+\end{equation}
+We used the finite-chain eigenvalues $\gamma_n^d$ so that $N$ sets the spatial resolution and $M$ sets the spectral bandwidth.
+Each modal-sign sequence was held fixed during loading. The same sequence was
+used across $\alpha$, and increasing $M$ added modes without changing the
+signs of the modes already present.
+
+The full nonlinear torsional-hinge energy was minimized by FIRE continuation,
+using the preceding equilibrium configuration as the initial condition at
+each load. We used 121 logarithmically spaced values of $\lambda$ between
+$10^{-5}\gamma_1$ and $10\gamma_M$. The rms-gradient tolerance was
+$10^{-9}/N$, and only curves that converged at every load were included in the
+analysis.
+
+\subsubsection*{Crossover and scaling analysis}
+
+The small-strain compliance $C_0$ was calculated from the Hessian of the
+unloaded finite chain. We then defined
+\begin{equation}
+R(\lambda)=
+\frac{\varepsilon(\lambda)}{C_0\lambda}.
+\end{equation}
+For each curve, $\lambda_\times$ was identified as the first persistent
+descending crossing of $R=1/2$ after the low-load plateau. The crossing was
+interpolated in $\log\lambda$, and the associated strain was
+\begin{equation}
+\varepsilon_\times=
+\frac{1}{2}C_0\lambda_\times.
+\end{equation}
+
+For each modal-sign sequence, the strain scaling was measured from a linear
+regression of $\log\varepsilon_\times$ against
+$\log[M^{1+\alpha}]$. The crossover-force scaling was measured from
+$\log\lambda_\times$ against $\log M$. These representations give predicted
+slopes $-1$ and $0$, respectively.
+
+The quenched ensemble consisted of 100 modal-sign sequences selected from
+their unloaded geometries before calculating any force--strain response. The
+same sequences were paired across $\alpha$ and $M$. Positive observables were
+reported as geometric means, with the 16th--84th percentiles across the
+ensemble. Individual load values and values of $M$ were treated as sampling
+coordinates rather than independent realizations.
+
+\subsubsection*{Inverse design of marginal constitutive laws}
+
+The exponential and linear--logarithmic responses in
+Fig.~\ref{fig:spectral-law}f were obtained by prescribing a target modal
+compliance,
+\begin{equation}
+K(\lambda)
+\equiv
+\frac{\dd\varepsilon}{\dd\lambda}
+=
+2\sum_m S_m
+\frac{\Gamma_m^2}{(\Gamma_m+\lambda)^3},
+\end{equation}
+and solving for non-negative modal powers at fixed
+$2\sum_mS_m=\eta^2$.
+
+For the exponential response, we prescribed
+\begin{equation}
+K(\lambda)=
+\frac{A}{\lambda+\lambda_0},
+\end{equation}
+which gives
+\begin{equation}
+\varepsilon=
+A\log\left(1+\frac{\lambda}{\lambda_0}\right),
+\qquad
+\lambda=
+\lambda_0
+\left[
+\exp\left(\frac{\varepsilon}{A}\right)-1
+\right].
+\end{equation}
+The corresponding spectral density was discretized over modes
+$m=4,\ldots,256$.
+
+For the linear--logarithmic response, the target law was
+\begin{equation}
+\frac{\lambda}{\lambda_r}
+=
+x\log(1+x),
+\qquad
+x=
+\frac{\varepsilon}{\varepsilon_0}.
+\end{equation}
+The modal powers over $m=1,\ldots,256$ were obtained by a non-negative
+least-squares match to the target strain and compliance. Both geometries were
+simulated with $N=4096$, $\eta=\pi/4$ and 161 logarithmically spaced loads
+from $10^{-3}\Gamma_{\min}$ to $3\Gamma_{\max}$, using the same nonlinear
+continuation procedure. Figure~\ref{fig:spectral-law}f compares the prescribed
+response, its finite-band modal realization and the response of the full
+nonlinear chain.
+
+\subsection*{Finite-element simulations}
+\label{sec:fem_methods}
+
+Finite-element simulations were performed to validate the theoretical predictions independently of experimental effects such as self-weight, plasticity, and viscoelasticity. The experimentally tested geometries with spectral exponents $\alpha=-1/3$, $0$, and $+1/3$ were reproduced in COMSOL Multiphysics 5.6 using the two-dimensional Solid Mechanics module. The material was modeled as linear elastic, with Young’s modulus ($E=6\,\mathrm{MPa}$) and Poisson’s ratio ($\nu=0.4$), while geometric nonlinearity was included to account for large deformations.
+
+The leftmost point of each filament was fixed, and a tensile point load was applied at its rightmost point. The force was increased in logarithmically spaced increments from $10^{-5}$ to $5\,\mathrm{N}$ under quasi-static loading. The geometries were discretized using the physics-controlled mesh with a normal element size. The nonlinear equilibrium equations were solved using the automatic Newton method and the MUMPS direct solver.
+
+% For fixed-phase continuous geometries, the theoretical force--extension curves were evaluated directly from Eq.~\eqref{eq:strain_exact_cont_methods}. To account for the finite spatial sampling of the printed centre-lines, the same reference geometries were also sampled on $N$ links and evaluated using the exact discrete eigenvalues in Eq.~\eqref{eq:global_discrete_eigenvalue}.
+
+% For stochastic chains, each realization was generated using Eq.~\eqref{eq:stochastic_spectrum_methods}. At each force, the modal amplitudes were calculated from Eq.~\eqref{eq:global_discrete_filter}, followed by an inverse discrete Fourier transform. The strain was calculated either from the projected link lengths or from Eq.~\eqref{eq:discrete_strain_global}; both procedures agree within the small-angle regime.
+
+% Ensemble curves report the median over quenched realizations, and error bars denote the interquartile range. The crossover was operationally defined by
+% \begin{equation}
+% \frac{\varepsilon}
+% {C_{\mathrm{lin}}^{d}\lambda}
+% =
+% \frac{1}{2},
+% \end{equation}
+% where the globally normalized discrete Hookean compliance is
+% \begin{equation}
+% C_{\mathrm{lin}}^{d}
+% =
+% 2\sum_{n=1}^{M}
+% \frac{S_n}{\bar\gamma_n^d}.
+% \end{equation}
+% Alternative fixed-threshold definitions modify the numerical prefactor but preserve the scaling with $M$ and $\alpha$.
+
+% OPTIONAL THERMAL METHODS.
+\subsection*{Finite-temperature discrete chains}
+\label{sec:thermal_methods}
+
+Thermal simulations used the discrete model with reduced temperature
+\begin{equation}
+\tau=\frac{k_{\mathrm B}T}{\kappa}
+\end{equation}
+and local dimensionless force $\lambda_d=F\ell/\kappa$. In the small-angle regime, the Gibbs weight at fixed quenched geometry is
+\begin{equation}
+\beta\mathcal H
+=
+\frac{1}{2\tau}
+\sum_{j=0}^{N-1}
+\left\{
+\left[
+\nabla\theta_j-\nabla\theta_j^{(0)}
+\right]^2
++
+\lambda_d\theta_j^2
+\right\}.
+\label{eq:thermal_hamiltonian_methods}
+\end{equation}
+The conditional Fourier distribution is Gaussian, with
+\begin{equation}
+\left\langle
+\widehat{\theta}_n
+\right\rangle_{\theta_0}
+=
+\frac{\gamma_n^d}
+{\gamma_n^d+\lambda_d}
+\widehat{\theta}_n^{(0)}
+\end{equation}
+and
+\begin{equation}
+\left\langle
+\left|
+\widehat{\theta}_n
+-
+\left\langle\widehat{\theta}_n\right\rangle
+\right|^2
+\right\rangle_{\theta_0}
+=
+\frac{N\tau}
+{\gamma_n^d+\lambda_d}.
+\end{equation}
+
+The mean strain relative to the athermal quenched reference separates as
+\begin{equation}
+\varepsilon(\tau,\lambda_d)
+=
+\varepsilon_{\mathrm q}(\lambda_d)
+-
+\varepsilon_{\mathrm{th}}(\tau,\lambda_d),
+\end{equation}
+where $\varepsilon_{\mathrm q}$ is the athermal response and
+\begin{equation}
+\varepsilon_{\mathrm{th}}
+=
+\frac{\tau}{2N}
+\sum_{n=0}^{N-1}
+\frac{1}
+{\gamma_n^d+\lambda_d}.
+\end{equation}
+The sum can be evaluated as
+\begin{equation}
+\varepsilon_{\mathrm{th}}
+=
+\frac{\tau}{2}
+\frac{
+\coth\left[N\mu(\lambda_d)/2\right]
+}
+{\sqrt{\lambda_d(\lambda_d+4)}},
+\qquad
+\mu(\lambda_d)
+=
+2\operatorname{arsinh}
+\left(
+\frac{\sqrt{\lambda_d}}{2}
+\right).
+\label{eq:thermal_exact_methods}
+\end{equation}
+For $N^{-2}\ll\lambda_d\ll1$,
+\begin{equation}
+\varepsilon_{\mathrm{th}}
+\simeq
+\frac{\tau}{4}\lambda_d^{-1/2}.
+\end{equation}
+For a flat stochastic spectrum with $M\propto N$, the quenched response scales as $\varepsilon_{\mathrm q}\sim\eta^2\lambda_d^{1/2}$. Their balance gives
+\begin{equation}
+\lambda_d^\star
+\sim
+\frac{\tau}{\eta^2}.
+\end{equation}
+
+Thermal configurations were sampled using Hamiltonian Monte Carlo implemented in Stan \ign{referencia}. The number of warm-up steps, retained samples, independent chains, convergence criteria and software versions should be reported in the final manuscript.
+
+\subsection*{Experimental methods}
+\label{sec:experimental_methods}
+
+\subsubsection*{Specimen fabrication}
+
+Planar beams were fabricated by fused-filament deposition using thermoplastic polyurethane (FlexFill TPU 92A, Fillamentum). The specimens had width $w=7.2\,\mathrm{mm}$, thickness $t=2.4\,\mathrm{mm}$ and second moment of area $I=wt^3/12$.
+Broadband specimens had total arc length $L=72\,\mathrm{cm}$. Their centre-lines were generated from Eq.~\eqref{eq:fixed_geometry_methods} with phases randomly distributed in the range $[0,2\pi)$. Geometries containing self-intersections were discarded. 
+%or separations smaller than the printable beam width 
+Specimens were printed with $100\%$ infill and with the deposition direction following the local centre-line. Samples exceeding the printer build volume were printed in separate sections and joined by local thermal bonding.
+
+\subsubsection*{Mechanical testing and material characterization}
+
+Tensile tests were performed using an Instron universal testing machine equipped with a $90\,\mathrm{N}$ load cell. Specimens were mounted vertically and stretched under displacement control. Six loading--unloading cycles were performed for each specimen. The initial projected length was measured in the unloaded hanging configuration.
+
+Independent tensile tests on printed dog-bone specimens were used to estimate the Young modulus. The material response was approximately linear over the strain range relevant to the filament experiments, with $E\simeq25\,\mathrm{MPa}$. A weak loading--unloading hysteresis was observed. To reduce time-dependent contributions, force values from loading and unloading branches were averaged at matched strain. Experimental forces were converted to $\lambda=FL^2/(EI)$.
+
+\subsubsection*{Image and spectral analysis}
+
+Filament deformation was recorded with a digital camera. Frames were converted to grayscale, cropped to the filament region and segmented using a fixed intensity threshold. The binary centre-line was obtained by skeletonization, parameterized by arc length, interpolated using piecewise cubic polynomials and smoothed using a Savitzky--Golay filter.
+
+The tangent angle was evaluated as
+\begin{equation}
+\theta(s)
+=
+\operatorname{atan2}
+\left(
+\frac{\dd y}{\dd s},
+\frac{\dd x}{\dd s}
+\right).
+\end{equation}
+Its spatial mean was removed to eliminate rigid-body rotation. The sequence of angles was resampled at $2048$ uniformly spaced points in normalized arc length and transformed using a discrete Fourier transform. Under the Fourier convention used in the analysis, the one-sided spectrum was defined as
+\begin{equation}
+S_n=|c_n|^2.
+\end{equation}
+where $c_n$ is the complex Fourier amplitude.
+% such that
+% \begin{equation}
+% 2\sum_{n>0}S_n
+% =
+% \langle\theta^2\rangle.
+% \end{equation}
+The first $50$ positive modes were retained. Spectra were interpolated onto a common force grid. A five-mode moving average was applied only to the spectral maps used for visualization and not to the force--extension measurements or fitted constitutive exponents.
+
+\newpage
+
+
+\section{Stochastic discrete chains}
+\label{sec:stochastic_main}
+The continuous construction introduced above prescribes the reference
+geometry through a deterministic set of Fourier amplitudes and phases.
+Many disordered filamentary systems, however, are more naturally
+described by a local stochastic rule. 
+Therefore, we now consider a discrete chain whose stress-free tangent angles form a stationary random sequence $\{\theta_j^{(0)}\}_{j=0}^{N-1}$ satisfying
+\begin{equation}
+    \left\langle \theta_j^{(0)} \right\rangle_{\mathrm{ens}}=0,
+    \qquad
+    \left\langle
+    \theta_j^{(0)}\theta_{j'}^{(0)}
+    \right\rangle_{\mathrm{ens}}
+    =
+    \eta^2\delta_{jj'} ,
+\end{equation}
+where $\langle\cdot\rangle_{\mathrm{ens}}$ denotes an average over
+independent realizations of the quenched geometry. Thus, the angles are
+uncorrelated in real space and have variance $\eta^2$.
+
+Introducing the discrete Fourier transform $\widehat{\theta}^{(0)}_k
+    =
+    \sum_{j=0}^{N-1}
+    \theta_j^{(0)}e^{-2\pi i k j/N}$, the real-space covariance implies $    \left\langle
+    \widehat{\theta}^{(0)}_k
+    \widehat{\theta}^{(0)\,*}_{k'}
+    \right\rangle_{\mathrm{ens}}
+    =
+    N\eta^2\delta_{kk'}$.
+We define the two-sided discrete angular spectrum as $S_k
+    =
+    \left|
+    \widehat{\theta}^{(0)}_k
+    \right|^2 / N^2 .$
+Consequently, $    \left\langle S_k\right\rangle_{\mathrm{ens}}
+    =
+    \eta^2/N$, with $ k\neq0$,
+so that, an uncorrelated angular sequence has a flat, or white, spectrum
+on average.
+
+A minimal example is obtained by assigning to each link one of two
+orientations,
+\begin{equation}
+    \theta_j^{(0)}=\chi_j \eta,
+    \qquad
+    \mathbb P(\chi_j=+1)=\mathbb P(\chi_j=-1)=\frac{1}{2},
+\end{equation}
+where the variables $\chi_j$ are statistically independent. This
+binary angular sequence satisfies the preceding covariance exactly and
+generates a random-walk-like centre-line. The same second-order
+statistics are obtained from other uncorrelated zero-mean
+distributions, such as a Gaussian distribution with variance
+$\eta^2$.
+
+The discrete Fourier amplitudes of an uncorrelated angular sequence
+have equal mean power at all non-zero modes. Consequently, its
+ensemble-averaged angular spectrum is flat, $\left\langle S_n\right\rangle_{\mathrm{ens}}
+    =\mathrm{const.}$,
+up to the lattice cutoff. The random-walk-like chain is therefore the
+stochastic analogue of the flat-spectrum geometry discussed above.
+Its ensemble-averaged strain follows the same spectral-filtering law,
+with the continuum cutoff $M$ replaced, at the scaling level, by the
+number of independently resolved discrete modes, which is proportional
+to $N$. In particular,
+\begin{equation}
+    \left\langle\varepsilon\right\rangle_{\mathrm{ens}}
+    \sim
+    \begin{cases}
+        \displaystyle \eta^2 N^{-1}\lambda,
+        & \lambda\ll 1,\\[4pt]
+        \displaystyle \eta^2 N^{-1}\lambda^{1/2},
+        & 1\ll\lambda\ll N^2,
+    \end{cases}
+\end{equation}
+and hence the intermediate constitutive response is quadratic,
+$\lambda\propto\langle\varepsilon\rangle_{\mathrm{ens}}^2$.
+The Hookean window decreases as
+$\varepsilon_\times\sim\eta^2/N$. Exact finite-$N$ expressions are given in Methods.
+
+The white angular sequence may also be used as a stochastic seed for
+generating non-flat spectra. Denoting its Fourier amplitudes by
+$\widehat{\xi}_n$, we introduce a spectrally coloured sequence through
+\begin{equation}
+    \widehat{\theta}^{(0)}_n
+    =
+    A_\alpha n^{\alpha/2}
+    \frac{\widehat{\xi}_n}{|\widehat{\xi}_n|},
+    \qquad 1\leq n\leq M,
+\end{equation}
+with Hermitian symmetry imposed for negative modes and $A_\alpha$
+chosen to fix the angular variance. Each realization then has random
+modal phases but the prescribed power-law spectrum
+$S_n\propto n^\alpha$. The resulting stochastic chains, illustrated in
+Fig.~3c, reproduce the family of constitutive laws $\lambda
+    \propto
+    \left\langle\varepsilon\right\rangle_{\mathrm{ens}}^{\,2/(1+\alpha)}
+     $, for $-1<\alpha<1$, 
+together with the finite-size crossover
+$\varepsilon_\times\sim\eta^2N^{-(1+\alpha)}$.
+
+\ign{hablamos de self-averaging?}
+For sufficiently large $N$, individual force--extension curves become
+increasingly close to their ensemble average. This apparent
+self-averaging results from the simultaneous contribution of many
+statistically independent modes: sample-to-sample fluctuations decrease
+as the number of active modes increases. Deviations remain largest near
+the longest-wavelength crossover, where only a small number of modes
+contribute, but become weak throughout the broadband spectral regime.
+
+% Let us consider stochastic chains composed of $N$ rigid links connected by
+% torsional hinges.
+% We first construct a random-walk-like reference geometry by assigning an
+% independent random tangent-angle increment to each link. Equivalently,
+% the stress-free angular sequence $\{\theta_j^{(0)}\}$ is generated from
+% independent, identically distributed random variables and its spatial
+% mean is subsequently removed. 
+% The resulting sequence is disordered in real space and, in the absence of correlations, has a flat angular
+% spectrum on average.
+
+% The continuous theory describes the 3D printed filaments directly, but experimentally realizable centre-lines are limited by self-intersection, specimen width and manufacturing resolution. To access much broader spectra, we complement the continuous geometries with stochastic discrete chains. Each chain contains $N$ rigid links joined by torsional hinges, and its quenched tangent-angle field is generated to carry the prescribed modal spectrum $S_n\propto n^\alpha$. The discrete equilibrium has the same filtering structure as Eq.~\eqref{eq:filter_main}; its exact formulation and continuum mapping are given in Methods.
+
+% For wavelengths much larger than the link length, the discrete eigenvalues converge to the continuous values $(2\pi n)^2$ when force is expressed using the global normalization $\lambda=FL^2/B$. The stochastic chains therefore provide a finite-dimensional microscopic realization of the same spectral theory.
+
+%The fixed-phase experiments display the ordering of constitutive exponents predicted by Eq.~\eqref{eq:beta_main}, although their finite spectral bandwidth and limited force range yield effective rather than asymptotic slopes (Fig.~\ref{fig:spectral-law}d). The broader stochastic spectra approach the predicted laws more closely. As $M$ increases, the initial Hookean branch recedes towards smaller strain, while the crossover force remains controlled by the longest wavelength (Fig.~\ref{fig:spectral-law}e--g).
+
+%These results separate the roles of spectral shape and bandwidth. The exponent $\alpha$ determines the form of the nonlinear constitutive law, whereas $M$ determines how close to the origin this law becomes observable. The large-bandwidth limit becomes a thermodynamic limit only for discrete ensembles in which the number of populated modes grows proportionally with the number of links.
+
+% OPTIONAL THERMAL SECTION. Remove if the thermal results are not yet consolidated.
+\section{Competition between quenched geometry and thermal fluctuations}
+\label{sec:thermal_main}
+
+The preceding results concern athermal chains with fixed quenched geometry. At finite temperature, thermal angular fluctuations provide an additional force-dependent contribution to the projected length. We investigate this competition using the discrete torsional-hinge model, for which the thermal distribution is Gaussian in the small-angle regime.
+
+At low force, thermal fluctuations can dominate the response and mask the straightening of the quenched geometry. Increasing tension suppresses the thermal fluctuations, after which the geometrically controlled constitutive law is recovered. For a flat spectrum and a sufficiently long chain, the quenched and thermal contributions scale as
+\begin{equation}
+\varepsilon_{\mathrm q}
+\sim
+\eta^2\sqrt{\lambda_d},
+\qquad
+\left|\varepsilon_{\mathrm{th}}\right|
+\sim
+\tau\lambda_d^{-1/2},
+\end{equation}
+where $\tau=k_{\mathrm B}T/\kappa$ and $\lambda_d=F\ell/\kappa$. Balancing these terms gives
+\begin{equation}
+\lambda_d^\star
+\sim
+\frac{\tau}{\eta^2}.
+\label{eq:thermal_crossover_main}
+\end{equation}
+Thus, increasing temperature shifts the geometrically dominated regime to larger force, whereas increasing quenched angular disorder shifts it to smaller force.
+
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/fig_thermal.pdf}
+    \caption{\textbf{Thermal fluctuations delay the onset of geometrically controlled non-Hookean elasticity.}
+    \textbf{a}, Force--strain curves for flat-spectrum stochastic chains at different reduced temperatures $\tau=k_{\mathrm B}T/\kappa$. Dashed and dotted guides indicate linear and quadratic reference scalings.
+    \textbf{b}, Mean projected extension as a function of force. At low force, thermal fluctuations reduce the mean extension below the athermal quenched value; at larger force, the quenched geometrical response is recovered.
+    \textbf{c}, Crossover force $\lambda_d^\star$ plotted against $\tau/\eta^2$ for temperature and disorder-strength sweeps. The dashed line indicates the Gaussian prediction $\lambda_d^\star\propto\tau/\eta^2$.
+    Representative thermal configurations are shown at low, intermediate and high force for two temperatures.}
+    \label{fig:thermal}
+\end{figure*}
+
+\bibliographystyle{unsrtnat}
+\bibliography{bibliography}
+
+\end{document}
