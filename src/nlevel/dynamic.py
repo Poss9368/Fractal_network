@@ -164,7 +164,7 @@ def mean_error(x: np.ndarray) -> float:
 
 def conjudate_gradient(thetas: np.ndarray, lambda_restriction: float) -> np.ndarray:
     presicion: float    = 1e-7    # Presición para la minimización
-    step_size: float    = 2e-4   # Tamaño del paso de integración para minimización
+    step_size: float    = 2e-3   # Tamaño del paso de integración para minimización
     n: np.ndarray       = len(thetas) # Numero de angulos del sistema"
     thetas_grad: np.ndarray  = modified_hamiltonian_gradient(thetas, lambda_restriction) # initial gradient
     error: float             = mean_error(thetas_grad) # initial error

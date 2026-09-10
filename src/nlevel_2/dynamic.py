@@ -37,64 +37,100 @@ def structure_size(thetas: np.ndarray) -> tuple:
     return structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min
 
 @njit
-def potential_by_level(thetas: np.ndarray, k_i: np.ndarray) -> np.ndarray:
+def potential_by_level(thetas: np.ndarray, k_i: np.ndarray, noise: np.ndarray) -> np.ndarray:
     """
-    Calculate the energy of any level of the system given the angles.
+    Energía por nivel escogiendo aleatoriamente phi- o phi+.
 
-    Args:
-        thetas (array): Angles of the system.
-        level (int): Level of the system.
-    Returns:
-        float: The energy of the system.
+    noise[i] = 0: usa phi- -> theta_i - S_i
+    noise[i] = 1: usa phi+ -> theta_i + S_i
     """
     N = len(thetas)
+
+    if len(k_i) != N or len(noise) != N:
+        raise ValueError("thetas, k_i y noise deben tener la misma longitud")
+
     sum_thetas = 0.0
     energy_by_levels = np.zeros(N)
+
     for i in range(N):
-        mutiplicidad = 2*4**(N-(i+1)) * k_i[i]
-        energy_by_levels[i] = mutiplicidad * (thetas[i] - sum_thetas)**2
+        multiplicidad = 2 * 4 ** (N - (i + 1)) * k_i[i]
+
+        # -1 cuando noise=0; +1 cuando noise=1
+        random_sign = 2 * noise[i] - 1
+
+        deformation = thetas[i] + random_sign * sum_thetas
+        energy_by_levels[i] = multiplicidad * deformation**2
+
         sum_thetas += thetas[i]
+
     return energy_by_levels
 
 @njit
-def potential(thetas: np.ndarray, k_i: np.ndarray) -> float:
+def potential(thetas: np.ndarray, k_i: np.ndarray, noise: np.ndarray) -> float:
     """
-    Calculate the energy of a system given the angles
+    Energía por nivel escogiendo aleatoriamente phi- o phi+.
 
-    Args:
-        thetas (array): Angles of the system.
-    Returns:
-        float: The energy of the system.
+    noise[i] = 0: usa phi- -> theta_i - S_i
+    noise[i] = 1: usa phi+ -> theta_i + S_i
     """
     N = len(thetas)
-    ant_thetas = 0.0
-    energy = 0.0 
+
+    if len(k_i) != N or len(noise) != N:
+        raise ValueError("thetas, k_i y noise deben tener la misma longitud")
+
+    sum_thetas = 0.0
+    energy = 0.0
+
     for i in range(N):
-        mutiplicidad = 2*4**(N-(i+1)) * k_i[i]
-        energy += mutiplicidad * (thetas[i] - ant_thetas)**2
-        ant_thetas = thetas[i]
+        multiplicidad = 2 * 4 ** (N - (i + 1)) * k_i[i]
+
+        # -1 cuando noise=0; +1 cuando noise=1
+        random_sign = 2 * noise[i] - 1
+
+        deformation = thetas[i] + random_sign * sum_thetas
+        energy += multiplicidad * deformation**2
+
+        sum_thetas += thetas[i]
 
     return energy
 
 @njit
-def potential_gradient(thetas, k_i):
+def potential_gradient(thetas: np.ndarray, k_i: np.ndarray, noise: np.ndarray) -> np.ndarray:
     n = len(thetas)
 
-    residuals = np.zeros(n)
     terms = np.zeros(n)
+    signs = np.zeros(n)
     gradient = np.zeros(n)
 
-    ant_thetas = 0.0
-    for i in range(n):
-        coefficient = 2.0 * (4 ** (n - i - 1)) * k_i[i]
-        residuals[i] = thetas[i] - ant_thetas
-        terms[i] = coefficient * residuals[i]
-        ant_thetas = thetas[i]
+    sum_thetas = 0.0
 
-    # gradient[i] = 2*(t_i - t_{i+1}), con t_n = 0
+    # Calculamos r_i y c_i*r_i
     for i in range(n):
-        next_term = terms[i + 1] if i + 1 < n else 0.0
-        gradient[i] = 2.0 * (terms[i] - next_term)
+        coefficient = (
+            2.0
+            * 4.0 ** (n - i - 1)
+            * k_i[i]
+        )
+
+        signs[i] = 2.0 * noise[i] - 1.0
+
+        residual = (
+            thetas[i]
+            + signs[i] * sum_thetas
+        )
+
+        terms[i] = coefficient * residual
+        sum_thetas += thetas[i]
+
+    # future_sum = sum_{m>i} signs[m] * terms[m]
+    future_sum = 0.0
+
+    for i in range(n - 1, -1, -1):
+        gradient[i] = 2.0 * (
+            terms[i] + future_sum
+        )
+
+        future_sum += signs[i] * terms[i]
 
     return gradient
 
@@ -140,7 +176,7 @@ def constraint_term_gradient(thetas: np.ndarray) -> np.ndarray:
 
 
 @njit
-def modified_hamiltonian(thetas: np.ndarray, k_i: np.ndarray ,lambda_restriction) -> float:
+def modified_hamiltonian(thetas: np.ndarray, k_i: np.ndarray, noise: np.ndarray ,lambda_restriction) -> float:
     """
     Calculate the total gradient of the energy and the size of the structure in the y direction.
 
@@ -150,12 +186,12 @@ def modified_hamiltonian(thetas: np.ndarray, k_i: np.ndarray ,lambda_restriction
         array: The total gradient of the energy and the size of the structure in the y direction.
     """
 
-    energy = potential(thetas, k_i)
+    energy = potential(thetas, k_i, noise)
     constraint = constraint_term(thetas)
     return energy - lambda_restriction * constraint
 
 @njit
-def modified_hamiltonian_gradient(thetas: np.ndarray, k_i: np.ndarray ,lambda_restriction) -> np.ndarray:
+def modified_hamiltonian_gradient(thetas: np.ndarray, k_i: np.ndarray, noise: np.ndarray,lambda_restriction) -> np.ndarray:
     """
     Calculate the total gradient of the energy and the size of the structure in the y direction.
 
@@ -164,18 +200,18 @@ def modified_hamiltonian_gradient(thetas: np.ndarray, k_i: np.ndarray ,lambda_re
     Returns:
         array: The total gradient of the energy and the size of the structure in the y direction.
     """
-    energy_grad: np.ndarray = potential_gradient(thetas, k_i)
+    energy_grad: np.ndarray = potential_gradient(thetas, k_i, noise)
     constraint_gradient: np.ndarray = constraint_term_gradient(thetas)
     return energy_grad - lambda_restriction * constraint_gradient
 
 def mean_error(x: np.ndarray) -> float:
     return np.sqrt(np.mean(x**2))
 
-def conjudate_gradient(thetas: np.ndarray, k_i: np.ndarray, lambda_restriction: float) -> np.ndarray:
-    presicion: float    = 1e-7    # Presición para la minimización
+def conjudate_gradient(thetas: np.ndarray, k_i: np.ndarray, noise: np.ndarray, lambda_restriction: float) -> np.ndarray:
+    presicion: float    = 1e-8    # Presición para la minimización
     step_size: float    = 2e-5   # Tamaño del paso de integración para minimización
     n: np.ndarray       = len(thetas) # Numero de angulos del sistema"
-    thetas_grad: np.ndarray  = modified_hamiltonian_gradient(thetas, k_i, lambda_restriction) # initial gradient
+    thetas_grad: np.ndarray  = modified_hamiltonian_gradient(thetas, k_i, noise, lambda_restriction) # initial gradient
     error: float             = mean_error(thetas_grad) # initial error
     
     thetas_velocity_CG: np.ndarray  = np.array(np.zeros(n))  
@@ -188,7 +224,7 @@ def conjudate_gradient(thetas: np.ndarray, k_i: np.ndarray, lambda_restriction: 
             print(f"n = {n}, iter = {iter}, error = {error:.2e}")
         thetas_velocity_CG = thetas_grad + alpha_CG * thetas_velocity_CG
         thetas -= step_size * thetas_velocity_CG
-        thetas_grad = modified_hamiltonian_gradient(thetas, k_i, lambda_restriction)
+        thetas_grad = modified_hamiltonian_gradient(thetas, k_i, noise, lambda_restriction)
         new_error = mean_error(thetas_grad)
 
         if new_error < error:
@@ -206,11 +242,18 @@ def conjudate_gradient(thetas: np.ndarray, k_i: np.ndarray, lambda_restriction: 
 
 def example_animation():
     # Ángulos iniciales del sistema
-    n = 4  # Número de ángulos
+    n = 5  # Número de ángulos
     thetas_init = np.zeros(n)  # Inicializar con ceros
     thetas_init[-1] = np.pi / 1024  # Último ángulo en radianes
-    k_i = np.ones(n)  # Constantes de rigidez/acoplamiento para cada nivel
 
+    #rand noise for reproducibility
+    seed  = 42
+    rng = np.random.RandomState(seed)
+    noise = rng.randint(0, 2, size=n)
+    print(f"Noise: {noise}")
+
+    # Constantes de elasticidad para cada nivel
+    k_i = np.ones(n)  # Constantes de rigidez/acoplamiento para cada nivel
     k_i = []
     for i in range(n):
         k_i.append((2*4**(n-(i+1)))**-1)
@@ -225,8 +268,8 @@ def example_animation():
 
     def update(frame):
         lambda_restriction = lambda_values[frame]
-        thetas = conjudate_gradient(thetas_init, k_i, lambda_restriction)
-        energy_by_levels = potential_by_level(thetas, k_i)
+        thetas = conjudate_gradient(thetas_init, k_i, noise, lambda_restriction)
+        energy_by_levels = potential_by_level(thetas, k_i, noise)
         
         ax1.clear()
         structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = print_structure(thetas, ax1, square_size=1.0/2**n)
@@ -248,12 +291,6 @@ def example_animation():
 
 if __name__ == "__main__":
     example_animation()
-    #thetas example
-    # theta = np.array([np.pi/8, np.pi/4, np.pi/6, np.pi/3])
-    # structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = structure_size(theta)
-    # constraint_term = constraint_term(theta)
-    # print(f"Structure size x max: {structure_size_x_max}, x min: {structure_size_x_min}, y max: {structure_size_y_max}, y min: {structure_size_y_min}")
-    # print(f"Constraint term: {constraint_term}")
 
     
 
