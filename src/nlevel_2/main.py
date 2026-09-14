@@ -1,22 +1,48 @@
 from pathlib import Path
+import os
+from multiprocessing import Pool
+
 import numpy as np
 from dynamic import conjudate_gradient, structure_size
 
 PATH = Path(__file__).resolve().parent
 RESULTS_PATH = PATH / 'results'
-N_SEEDS = 128
+N_SEEDS = 8
 BASE_SEED = 45
 
 
+def simulate_seed(args):
+    seed, n, k_i, lambda_values = args
+
+    rng = np.random.RandomState(seed)
+    noise = rng.randint(0, 2, size=n)
+    thetas = np.zeros(n)
+    results = []
+
+    structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = structure_size(thetas)
+    area = structure_size_x_max * structure_size_y_max
+    results.append((0, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min, area))
+
+    for lambda_restriction in lambda_values:
+        thetas = conjudate_gradient(thetas, k_i, noise, lambda_restriction)
+        structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = structure_size(thetas)
+        area = structure_size_x_max * structure_size_y_max
+
+        results.append((lambda_restriction, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min, area))
+
+    print(f"Seed {seed} completed.")
+    return results
+
+
 if __name__ == "__main__":
-    for i in range(3, 5):
+    for i in range(8, 9):
         # Ángulos iniciales del sistema
         n = 2 ** i
         thetas = np.zeros(n)  # Inicializar con ceros
 
         # Rango de valores para lambda_restriction
-        x_min = -5.0
-        x_max = 3
+        x_min = -3
+        x_max = 4
         bin = int((x_max - x_min)*4 + 1) 
         lambda_values = np.logspace(x_min, x_max, bin)  # Valores de lambda en escala logarítmica
 
@@ -24,27 +50,17 @@ if __name__ == "__main__":
         for i in range(n):
             k_i.append((2*4**(n-(i+1)))**-1)
 
-        results_by_seed = []
-        for seed in range(BASE_SEED, BASE_SEED + N_SEEDS):
-            rng = np.random.RandomState(seed)
-            noise = rng.randint(0, 2, size=n)
-            results = []
-            thetas = np.zeros(n)  # Inicializar con ceros
+        tasks = [
+            (seed, n, k_i, lambda_values)
+            for seed in range(BASE_SEED, BASE_SEED + N_SEEDS)
+        ]
 
-            structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = structure_size(thetas)
-            area = structure_size_x_max * structure_size_y_max
-            results.append((0, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min, area))
-
-            for lambda_restriction in lambda_values:
-                thetas = conjudate_gradient(thetas, k_i, noise, lambda_restriction)
-                structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = structure_size(thetas)
-                area = structure_size_x_max * structure_size_y_max
-                results.append((lambda_restriction, structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min, area))
-
-            results_by_seed.append(results)
+        process_count = 8
+        with Pool(processes=process_count) as pool:
+            results_by_seed = pool.map(simulate_seed, tasks)
 
         # Promediar cada columna para cada valor de lambda entre todas las semillas.
-        results = np.mean(np.asarray(results_by_seed, dtype=float), axis=0)
+        results = np.median(np.asarray(results_by_seed, dtype=float), axis=0)
 
         # Imprimir los resultadospython main.py en .csv y con cabecera
         file_name = f"{n}_angles_output.csv"

@@ -175,7 +175,7 @@ def conjudate_gradient(thetas: np.ndarray, lambda_restriction: float) -> np.ndar
     max_iter: int                   = 1e10
     
     while error > presicion and iter < max_iter:
-        if iter%10000 == 0:
+        if iter%50000 == 0:
             print(f"n = {n}, iter = {iter}, error = {error:.2e}")
         thetas_velocity_CG = thetas_grad + alpha_CG * thetas_velocity_CG
         thetas -= step_size * thetas_velocity_CG
