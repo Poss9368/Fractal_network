@@ -7,7 +7,7 @@ from dynamic import conjudate_gradient, structure_size
 
 PATH = Path(__file__).resolve().parent
 RESULTS_PATH = PATH / 'results'
-N_SEEDS = 8
+N_SEEDS = 32
 BASE_SEED = 45
 
 
@@ -16,6 +16,8 @@ def simulate_seed(args):
 
     rng = np.random.RandomState(seed)
     noise = rng.randint(0, 2, size=n)
+    ## last noise is always 0, to avoid the last angle to be fixed
+    noise[-1] = 0
     thetas = np.zeros(n)
     results = []
 
@@ -35,7 +37,7 @@ def simulate_seed(args):
 
 
 if __name__ == "__main__":
-    for i in range(8, 9):
+    for i in range(4, 8):
         # Ángulos iniciales del sistema
         n = 2 ** i
         thetas = np.zeros(n)  # Inicializar con ceros
@@ -48,7 +50,7 @@ if __name__ == "__main__":
 
         k_i = []
         for i in range(n):
-            k_i.append((2*4**(n-(i+1)))**-1)
+            k_i.append(((2*4**(n-(i+1)))**-1))
 
         tasks = [
             (seed, n, k_i, lambda_values)
@@ -60,7 +62,7 @@ if __name__ == "__main__":
             results_by_seed = pool.map(simulate_seed, tasks)
 
         # Promediar cada columna para cada valor de lambda entre todas las semillas.
-        results = np.median(np.asarray(results_by_seed, dtype=float), axis=0)
+        results = np.mean(np.asarray(results_by_seed, dtype=float), axis=0)
 
         # Imprimir los resultadospython main.py en .csv y con cabecera
         file_name = f"{n}_angles_output.csv"
