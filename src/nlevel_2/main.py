@@ -17,7 +17,7 @@ def simulate_seed(args):
     rng = np.random.RandomState(seed)
     noise = rng.randint(0, 2, size=n)
     ## last noise is always 0, to avoid the last angle to be fixed
-    noise[-1] = 0
+    noise[-1] = 1
     thetas = np.zeros(n)
     results = []
 
