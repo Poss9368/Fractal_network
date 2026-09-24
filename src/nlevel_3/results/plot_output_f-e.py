@@ -7,7 +7,7 @@ import numpy as np
 PATH = Path(__file__).resolve().parent
 
 if __name__ == "__main__":
-    ns = [32]  # Lista de valores de n para los que se generarán los gráficos
+    ns = [16,32,64]  # Lista de valores de n para los que se generarán los gráficos
     fig, ax1 = plt.subplots(figsize=(8, 6))
     for n in ns:
         file_name = f"{n}_angles_output.csv"
@@ -26,11 +26,11 @@ if __name__ == "__main__":
 
     exp1 = 1.0
     x1 = np.logspace(-3.2, -0.5, 100)
-    ax1.plot(x1, x1**(exp1)*1, 'k--', label=fr'$f \propto \epsilon^{{{exp1}}}$')
+    #ax1.plot(x1, x1**(exp1)*1, 'k--', label=fr'$f \propto \epsilon^{{{exp1}}}$')
 
-    exp2 = 3.0
-    x2 = np.logspace(0, 1, 100)
-    ax1.plot(x2, x2**(exp2)*15, 'b--', label=fr'$f \propto \epsilon^{{{exp2}}}$')
+    exp2 = 1.5
+    x2 = np.logspace(-3, -1, 100)
+    ax1.plot(x2, x2**(exp2)*150, 'b--', label=fr'$f \propto \epsilon^{{{exp2}}}$')
 
     ax1.set_xscale('log')
     ax1.set_yscale('log')

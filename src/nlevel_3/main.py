@@ -15,7 +15,7 @@ PATH = Path(__file__).resolve().parent
 RESULTS_PATH = PATH / 'results'
 N_SEEDS = 8
 BASE_SEED = 45
-NOISE_FRACTION = 0.5
+NOISE_FRACTION = 0.000001
 
 
 def simulate_seed(args):
@@ -68,7 +68,7 @@ def simulate_seed(args):
 
 
 if __name__ == "__main__":
-    for level_power in range(5, 6):
+    for level_power in range(4, 7):
         n = 2 ** level_power
 
         # Rango preliminar de fuerza. Para medir el crossover hookeano a N
@@ -84,13 +84,12 @@ if __name__ == "__main__":
         # Elegir la misma rigidez microscópica k_i=4^(-N) en todos los
         # niveles produce exactamente w_i=4^(-i), de modo que
         # E=sum_i w_i (Delta phi_i^-)^2.
-        microscopic_stiffness = np.exp2(-2.0 * n)  # 4**(-N)
-        k_i = np.full(n, microscopic_stiffness, dtype=float)
+        #microscopic_stiffness = np.exp2(-2.0 * n)  # 4**(-N)
+        #k_i = np.full(n, microscopic_stiffness, dtype=float)
 
-
-        # k_i = []
-        # for i in range(n):
-        #     k_i.append(((4**(n-(i+1)))**-1))
+        k_i = []
+        for i in range(n):
+            k_i.append(((4**(n-(i+1)))**-1))
 
         tasks = [
             (seed, n, k_i, lambda_values)

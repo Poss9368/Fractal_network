@@ -17,7 +17,7 @@ def simulate_seed(args):
     rng = np.random.RandomState(seed)
     noise = rng.randint(0, 2, size=n)
     ## last noise is always 0, to avoid the last angle to be fixed
-    noise[-1] = 1
+    noise[:] = 1
     thetas = np.zeros(n)
     results = []
 
@@ -45,7 +45,7 @@ if __name__ == "__main__":
         # Rango de valores para lambda_restriction
         x_min = -3
         x_max = 4
-        bin = int((x_max - x_min)*4 + 1) 
+        bin = int((x_max - x_min)*3 + 1) 
         lambda_values = np.logspace(x_min, x_max, bin)  # Valores de lambda en escala logarítmica
 
         k_i = []

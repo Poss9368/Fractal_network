@@ -1,0 +1,44 @@
+[
+  {
+    "n": 2048,
+    "m": 1024,
+    "p": 3.0,
+    "eta": 0.5,
+    "reference": "maximum",
+    "x0": 26.362195631918695,
+    "compliance": 1037431.0973446873,
+    "f_cross_10pct": 1.2424693133861826e-11,
+    "strain_cross_10pct": 1.160078672882995e-05,
+    "fitted_exponent": 2.9225690360802834,
+    "max_absolute_residual": 4.791306240647941e-14,
+    "max_angle": 0.05933718527418819
+  },
+  {
+    "n": 4096,
+    "m": 2048,
+    "p": 3.0,
+    "eta": 0.5,
+    "reference": "maximum",
+    "x0": 37.040839608805875,
+    "compliance": 5833320.178511175,
+    "f_cross_10pct": 1.1049368133551096e-12,
+    "strain_cross_10pct": 5.800905188391778e-06,
+    "fitted_exponent": 2.9381411048551,
+    "max_absolute_residual": 4.608292913932388e-14,
+    "max_angle": 0.04205662785183506
+  },
+  {
+    "n": 8192,
+    "m": 4096,
+    "p": 3.0,
+    "eta": 0.5,
+    "reference": "maximum",
+    "x0": 52.14414980808936,
+    "compliance": 32854894.921652753,
+    "f_cross_10pct": 9.809126305491859e-14,
+    "strain_cross_10pct": 2.900500326361394e-06,
+    "fitted_exponent": 2.9493663263515804,
+    "max_absolute_residual": 6.437949132132026e-14,
+    "max_angle": 0.02978830330175697
+  }
+]
