@@ -7,7 +7,7 @@ import numpy as np
 PATH = Path(__file__).resolve().parent
 
 if __name__ == "__main__":
-    ns = [16, 32, 64, 128, 256, 512] 
+    ns = [4, 8,16, 32, 64, 128, 256] 
     fig, ax1 = plt.subplots(figsize=(8, 6))
     for n in ns:
         file_name = f"{n}_angles_output.csv"

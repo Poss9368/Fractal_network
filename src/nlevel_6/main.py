@@ -27,9 +27,9 @@ def simulate_seed(args):
     rest_deformations = rest_deformations_from_thetas(thetas)
 
     # Configuraciones deterministas útiles:
-    family_weights = np.ones((n, 2))  # ambas familias completas
-    # family_weights = np.column_stack((np.ones(n), np.zeros(n)))  # sólo phi-
-    # family_weights = np.column_stack((np.zeros(n), np.ones(n)))  # sólo phi+
+    #family_weights = np.ones((n, 2))  # ambas familias completas
+    #family_weights = np.column_stack((np.ones(n), np.zeros(n)))  # sólo phi-
+    family_weights = np.column_stack((np.zeros(n), np.ones(n)))  # sólo phi+
     results = []
 
     geometric_max_length = structure_size(np.full(n, theta_star))[0]
@@ -74,10 +74,10 @@ def simulate_seed(args):
 
 
 if __name__ == "__main__":
-    for level_power in range(4, 10):
+    for level_power in range(2, 9):
         n = 2 ** level_power
 
-        x_min = -4
+        x_min = -5
         x_max = 5
         number_of_points = int((x_max - x_min)*3 + 1)
         lambda_values = np.logspace(x_min, x_max, number_of_points)
