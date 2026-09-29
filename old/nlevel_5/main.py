@@ -1,41 +1,52 @@
 from pathlib import Path
 import csv
-import argparse
 from multiprocessing import Pool
 
 import numpy as np
-try:
-    from .dynamic import (conjudate_gradient, fire_minimize,
-                          maximum_length_angle, rest_deformations_from_thetas,
-                          structure_size)
-except ImportError:
-    from dynamic import (conjudate_gradient, fire_minimize,
-                         maximum_length_angle, rest_deformations_from_thetas,
-                         structure_size)
-
+from old.nlevel.dynamic import (
+    balanced_random_signs,
+    conjudate_gradient,
+    maximum_length_angle,
+    rest_deformations_from_thetas,
+    rest_thetas_from_noise,
+    structure_size,
+)
 
 PATH = Path(__file__).resolve().parent
 RESULTS_PATH = PATH / 'results'
-N_SEEDS = 1
+N_SEEDS = 8
 BASE_SEED = 45
-REST_FRACTION = 0.5
+NOISE_FRACTION = 0.5
 
 
 def simulate_seed(args):
-    seed, n, w_i, lambda_values, solver = args
-    minimize = fire_minimize if solver == "fire" else conjudate_gradient
+    seed, n, k_i, lambda_values = args
 
-    theta_star = maximum_length_angle(n)
-    thetas = np.full(n, REST_FRACTION * theta_star)
+    rng = np.random.RandomState(seed)
+    signs = np.ones(n) #balanced_random_signs(n, rng)
+    noise_amplitude = NOISE_FRACTION * maximum_length_angle(n)
+    noise = noise_amplitude * signs
+    thetas = rest_thetas_from_noise(noise)
+
+    # Configuración elástica por nivel:
+    # family_weights[i] = [peso_phi_minus, peso_phi_plus].
+    # Los dos pesos son independientes y pueden coexistir.
+    # family_weights = rng.random_sample((n, 2))
+
+    # Ambos valores naturales se derivan aquí de la misma geometría theta^(0),
+    # por lo que ``thetas`` tiene energía exactamente cero a fuerza nula.
+    # También se puede construir esta matriz directamente para introducir
+    # equilibrios incompatibles y estudiar frustración elástica.
     rest_deformations = rest_deformations_from_thetas(thetas)
 
     # Configuraciones deterministas útiles:
-    family_weights = np.ones((n, 2))  # ambas familias completas
-    # family_weights = np.column_stack((np.ones(n), np.zeros(n)))  # sólo phi-
-    # family_weights = np.column_stack((np.zeros(n), np.ones(n)))  # sólo phi+
+    # family_weights = np.ones((n, 2))  # ambas familias completas
+    #family_weights = np.column_stack((np.ones(n), np.zeros(n)))  # sólo phi-
+    family_weights = np.column_stack((np.zeros(n), np.ones(n)))  # sólo phi+
     results = []
 
-    geometric_max_length = structure_size(np.full(n, theta_star))[0]
+    theta_star = np.full(n, maximum_length_angle(n))
+    geometric_max_length = structure_size(theta_star)[0]
 
     length_x, length_x_min, length_y_max, length_y_min = structure_size(thetas)
     rest_length = length_x
@@ -52,8 +63,8 @@ def simulate_seed(args):
     ))
 
     for lambda_restriction in lambda_values:
-        thetas = minimize(
-            thetas, w_i, family_weights, rest_deformations,
+        thetas = conjudate_gradient(
+            thetas, k_i, family_weights, rest_deformations,
             lambda_restriction,
         )
         length_x, length_x_min, length_y_max, length_y_min = structure_size(thetas)
@@ -77,39 +88,39 @@ def simulate_seed(args):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Respuesta a fuerza impuesta con continuación")
-    parser.add_argument("--sizes", nargs="+", type=int, default=[4, 16, 64, 256, 1024])
-    parser.add_argument("--solver", choices=["fire", "cg"], default="fire")
-    parser.add_argument("--processes", type=int, default=1)
-    parser.add_argument("--output-dir", type=Path, default=RESULTS_PATH)
-    options = parser.parse_args()
-    if any(n < 1 for n in options.sizes) or options.processes < 1:
-        parser.error("Los tamaños y el número de procesos deben ser positivos")
-    options.output_dir.mkdir(parents=True, exist_ok=True)
-    for n in options.sizes:
+    for level_power in range(4, 7):
+        n = 2 ** level_power
 
+        # Rango preliminar de fuerza. Para medir el crossover hookeano a N
+        # grande habrá que extender el extremo inferior y usar un solucionador
+        # precondicionado: los pesos abarcan desde 4^-1 hasta 4^-N.
         x_min = -5
-        x_max = 5
-        number_of_points = int((x_max - x_min)*3 + 1)
+        x_max = 4
+        number_of_points = int((x_max - x_min)*4 + 1)
         lambda_values = np.logspace(x_min, x_max, number_of_points)
 
-        # w_i es el peso elástico efectivo completo del nivel:
+        # Con i matemático = 1,...,N, el peso elástico es
         #     w_i = 4^(N-i) k_i.
-        # Para el caso uniforme usamos directamente w_i = 1 y evitamos
-        # calcular por separado potencias enormes y números diminutos.
-        w_i = np.ones(n, dtype=float)
+        # Elegir la misma rigidez microscópica k_i=4^(-N) en todos los
+        # niveles produce exactamente w_i=4^(-i), de modo que
+        # El prefactor geométrico por familia es 4^(N-i) k_i. Los pesos
+        # específicos de phi- y phi+ se guardan en family_weights.
+        
+        #microscopic_stiffness = np.exp2(-2.0 * n)  # 4**(-N)
+        #k_i = np.full(n, microscopic_stiffness, dtype=float)
+
+        k_i = []
+        for i in range(n):
+            k_i.append(((4**(n-(i+1)))**-1))
 
         tasks = [
-            (seed, n, w_i, lambda_values, options.solver)
+            (seed, n, k_i, lambda_values)
             for seed in range(BASE_SEED, BASE_SEED + N_SEEDS)
         ]
 
-        process_count = min(options.processes, len(tasks))
-        if process_count == 1:
-            results_by_seed = [simulate_seed(task) for task in tasks]
-        else:
-            with Pool(processes=process_count) as pool:
-                results_by_seed = pool.map(simulate_seed, tasks)
+        process_count = 8
+        with Pool(processes=process_count) as pool:
+            results_by_seed = pool.map(simulate_seed, tasks)
 
         samples = np.asarray(results_by_seed, dtype=float)
         seeds = np.arange(BASE_SEED, BASE_SEED + N_SEEDS)
@@ -122,7 +133,7 @@ if __name__ == "__main__":
 
         # Guardamos las realizaciones individuales para no perder la
         # distribución al escoger posteriormente otra forma de promediar.
-        samples_path = options.output_dir / f"{n}_angles_samples.csv"
+        samples_path = RESULTS_PATH / f"{n}_angles_samples.csv"
         with open(samples_path, "w", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(sample_header)
@@ -150,7 +161,7 @@ if __name__ == "__main__":
             "length_x_mean", "length_x_std", "area_mean",
             "rest_length_mean", "rest_length_std", "geometric_max_length",
         )
-        summary_path = options.output_dir / f"{n}_angles_output.csv"
+        summary_path = RESULTS_PATH / f"{n}_angles_output.csv"
         with open(summary_path, "w", newline="") as file:
             writer = csv.writer(file)
             writer.writerow(summary_header)

@@ -1,6 +1,6 @@
 %\title{Hierarchical Auxetic Elasticity}
 
-%\author{Carlos Villarroel${}^{1}$ and  Gustavo D"uring${}^{1}$}
+%\author{Carlos Villarroel${}^{1}$}
 %\affiliation{${}^1$Instituto de F\'isica, Pontificia Universidad Cat\'olica de Chile, Casilla 306, Santiago, Chile}
 
 \documentclass[11pt,a4paper]{article}
@@ -51,7 +51,7 @@
 % -----------------------------
 \title{\textbf{Hierarchical Auxetic Elasticity}}
 \author{
-Carlos Villarroel$^{1}$ and Gustavo D\"uring$^{1}$ \\
+Carlos Villarroel$^{1}$ \\
 \vspace{0.2cm}
 \small $^{1}$Instituto de Física, Pontificia Universidad Católica de Chile, Santiago, Chile
 }
@@ -159,69 +159,38 @@ deformación geométrica inicial sin generar tensiones residuales:
 la energía elástica sigue siendo nula en
 $\boldsymbol{\theta}=\boldsymbol{\theta}^{(0)}$.
 
-\paragraph{Selección global de las familias elásticas.}
+\paragraph{Energía elástica.}
 
-En lugar de escoger aleatoriamente una familia distinta en cada
-nivel, introducimos dos interruptores globales
-\begin{equation}
-\chi_-,\chi_+\in\{0,1\}.
-\label{eq:family_switches}
-\end{equation}
-Estos coeficientes no dependen del nivel. La elección
-$(\chi_-,\chi_+)=(1,1)$ conserva las dos familias de bisagras,
-$(1,0)$ apaga todas las bisagras $\phi^+$ y $(0,1)$ apaga todas las
-bisagras $\phi^-$. El caso $(0,0)$ carece de energía elástica y no
-será considerado.
+Las dos familias de bisagras se distinguen por su dependencia
+geométrica con los ángulos $\theta_i$, pero comparten una única
+constante elástica $k_i>0$ en cada nivel. Ambas familias contribuyen
+simultáneamente a la energía, con la misma rigidez.
 
 La contribución elástica de una unidad del nivel $i$ se escribe como
 \begin{equation}
 E^{(i)}
 =2k_i\left[
-\chi_-\left(\phi_i^--\phi_{i,0}^-\right)^2
+\left(\phi_i^--\phi_{i,0}^-\right)^2
 +
-\chi_+\left(\phi_i^+-\phi_{i,0}^+\right)^2
-\right],
+\left(\phi_i^+-\phi_{i,0}^+\right)^2
+\right].
 \label{eq:Ei_phi}
 \end{equation}
-donde $k_i>0$ es la rigidez de las bisagras del nivel $i$. Al usar
-las Ecs.~\eqref{eq:phi_combined} y \eqref{eq:phi_rest_def}, resulta
-conveniente definir las deformaciones angulares reducidas
-\begin{align}
-r_i^-(\boldsymbol{\theta})&=\theta_i-S_i,
-&r_{i,0}^-&=\theta_i^{(0)}-S_i^{(0)},
-\label{eq:reduced_minus}
-\\
-r_i^+(\boldsymbol{\theta})&=\theta_i+S_i,
-&r_{i,0}^+&=\theta_i^{(0)}+S_i^{(0)}.
-\label{eq:reduced_plus}
-\end{align}
-El signo adicional que relaciona $r_i^+$ con el ángulo físico
-$\phi_i^+=\pi-r_i^+$ desaparece al elevar la diferencia al cuadrado.
-Por tanto,
-\begin{equation}
-E^{(i)}
-=2k_i\left[
-\chi_-\left(r_i^--r_{i,0}^-\right)^2
-+
-\chi_+\left(r_i^+-r_{i,0}^+\right)^2
-\right].
-\label{eq:Ei_reduced}
-\end{equation}
-
-La energía total se obtiene sumando todos los niveles con su
-multiplicidad geométrica:
+Al sustituir las Ecs.~\eqref{eq:phi_combined} y
+\eqref{eq:phi_rest_def} y sumar todos los niveles con su
+multiplicidad geométrica, se obtiene la energía total:
 \begin{equation}
 \boxed{
 \begin{aligned}
-E_N(\boldsymbol{\theta};\boldsymbol{\theta}^{(0)},\chi_-,\chi_+)
+E_N(\boldsymbol{\theta};\boldsymbol{\theta}^{(0)})
 ={}&2\sum_{i=1}^{N}4^{N-i}k_i
 \Bigg\{
-\chi_-\left[
+\left[
 (\theta_i-S_i)-(\theta_i^{(0)}-S_i^{(0)})
 \right]^2
 \\[-0.2em]
 &\qquad+
-\chi_+\left[
+\left[
 (\theta_i+S_i)-(\theta_i^{(0)}+S_i^{(0)})
 \right]^2
 \Bigg\}.
@@ -240,41 +209,6 @@ w_i\equiv 2\,4^{N-i}k_i,
 \end{equation}
 de modo que la energía es simplemente la suma de $w_i$ multiplicado
 por los dos residuos cuadráticos de la Ec.~\eqref{eq:En_theta_final}.
-
-\paragraph{Hamiltoniano bajo carga longitudinal.}
-
-Sea $X(\boldsymbol{\theta})$ la longitud horizontal de la estructura y
-$X_0=X(\boldsymbol{\theta}^{(0)})$ su longitud natural. Para una fuerza
-longitudinal impuesta $f$, el potencial mecánico es
-\begin{equation}
-\boxed{
-\mathcal{H}_f(\boldsymbol{\theta})
-=
-E_N(\boldsymbol{\theta};\boldsymbol{\theta}^{(0)},\chi_-,\chi_+)
--f\left[X(\boldsymbol{\theta})-X_0\right].
-}
-\label{eq:H_force_model}
-\end{equation}
-El término constante $fX_0$ no modifica las configuraciones de
-equilibrio, pero hace explícito que el trabajo se mide desde el estado
-natural. Los ángulos de equilibrio minimizan $\mathcal{H}_f$, y la
-deformación longitudinal correspondiente es
-\begin{equation}
-\varepsilon
-=
-\frac{X(\boldsymbol{\theta})-X_0}{X_0}.
-\label{eq:strain_from_rest_model}
-\end{equation}
-Equivalentemente, si se prescribe una longitud $\bar X$, la fuerza
-actúa como multiplicador de Lagrange y se utiliza
-\begin{equation}
-\mathcal{H}(\boldsymbol{\theta},f;\bar X)
-=
-E_N(\boldsymbol{\theta};\boldsymbol{\theta}^{(0)},\chi_-,\chi_+)
--f\left[X(\boldsymbol{\theta})-\bar X\right].
-\label{eq:H_length_model}
-\end{equation}
-
 
 % =================================================
 \section{Tamaños del sistema}
@@ -298,7 +232,10 @@ Lx_{\max}^{(0)}=Lx_{\min}^{(0)}
 \end{equation}
 Con esta normalización,
 $Lx_{\max}^{(N)}=Ly_{\max}^{(N)}=1$
-cuando $\theta_i=0$ para todos los niveles.
+cuando $\theta_i=0$ para todos los niveles. Esta elección fija
+únicamente la unidad de longitud: la longitud inicial $L_0$ se
+calcula en la configuración natural $\boldsymbol{\theta}^{(0)}$
+y, en general, no es igual a uno.
 
 \begin{figure}[H]
   \centering
@@ -342,11 +279,10 @@ Ly_{\min}^{(i)}
 En cada paso, todas las cantidades del lado derecho corresponden
 al nivel anterior.
 
-La elección de la familia elástica $\sigma_i$ no aparece
-explícitamente en estas relaciones: para una configuración angular
-dada, las distancias se obtienen de la misma construcción geométrica.
-Su influencia sobre el tamaño del sistema ocurre a través de los
-ángulos de equilibrio seleccionados por la energía.
+Estas relaciones dependen únicamente de la configuración angular.
+Las rigideces y la configuración natural intervienen en las
+longitudes de equilibrio a través de los ángulos seleccionados
+por la energía elástica.
 
 La recurrencia para $Ly_{\min}^{(i)}$ puede resolverse directamente:
 \begin{equation}
@@ -395,38 +331,51 @@ pequeños ángulos.
 \subsection{Deformación y extensión máxima}
 \label{sec:strain_max}
 
-Definimos la deformación longitudinal mediante
+La longitud inicial se define a partir de la misma configuración
+natural que fija los ángulos de reposo de las bisagras:
+\begin{equation}
+L_0\equiv Lx_{\max}^{(N)}(\boldsymbol{\theta}^{(0)})>0.
+\label{eq:L0_general}
+\end{equation}
+La Ec.~\eqref{eq:Lxmax_product} permite calcularla para cualquier
+configuración inicial admisible. Definimos entonces
+\begin{equation}
+\boxed{
+\varepsilon(\boldsymbol{\theta};\boldsymbol{\theta}^{(0)})
+=\frac{Lx_{\max}^{(N)}(\boldsymbol{\theta})-L_0}{L_0}.
+}
+\label{eq:strain_def}
+\end{equation}
+Así, $\varepsilon=0$ en la configuración natural; los valores
+positivos y negativos corresponden, respectivamente, a extensión
+y compresión respecto de ella. La relación
+$\varepsilon=Lx_{\max}^{(N)}-1$ se recupera cuando
+$\boldsymbol{\theta}^{(0)}=\boldsymbol{0}$.
+
+Para ángulos actuales e iniciales pequeños y un número fijo de
+niveles, la expansión hasta segundo orden da
 \begin{equation}
 \varepsilon
 =
-\frac{Lx_{\max}^{(N)}-L_0}{L_0},
-\label{eq:strain_def}
-\end{equation}
-donde $L_0$ corresponde a la longitud de la configuración con
-$\theta_i=0$ para todos los niveles. Con la normalización adoptada,
-$L_0=1$, de modo que
-\begin{equation}
-\varepsilon=Lx_{\max}^{(N)}-1.
-\end{equation}
-
-Para pequeños ángulos y un número fijo de niveles, la expansión
-de la longitud hasta segundo orden conduce a
-\begin{equation}
-\varepsilon
-\simeq
-\frac12\sum_{i=1}^{N}\theta_i
--
-\frac18\sum_{i=1}^{N}\theta_i^2.
+\frac{
+\frac12\sum_{i=1}^{N}(\theta_i-\theta_i^{(0)})
+-\frac18\sum_{i=1}^{N}\left[\theta_i^2-(\theta_i^{(0)})^2\right]
+}{
+1+\frac12\sum_{i=1}^{N}\theta_i^{(0)}
+-\frac18\sum_{i=1}^{N}(\theta_i^{(0)})^2
+}
++O(\eta^3),
 \label{eq:strain_small_angles}
 \end{equation}
-La deformación macroscópica recoge así las contribuciones de
-todos los niveles de la estructura.
+donde $\eta=\max_i\{|\theta_i|,|\theta_i^{(0)}|\}$.
+Esta aproximación no es uniforme al aumentar $N$; para analizar
+ese límite conservamos la expresión trigonométrica completa.
 
 Para determinar la extensión máxima y su dependencia con $N$,
 consideramos la expresión geométrica completa. Denotamos por
 $X_N^\star$ el máximo de $Lx_{\max}^{(N)}$ respecto de los
-ángulos de apertura, dentro de la cinemática reducida y sin
-restricciones adicionales de contacto.
+ángulos de apertura en la rama $0\leq\theta_i\leq\pi$, dentro
+de la cinemática reducida y sin restricciones adicionales de contacto.
 
 La maximización conduce a una configuración en la que todos
 los ángulos son iguales,
@@ -470,7 +419,7 @@ X_N^\star
 \frac{1+Nt_N^\star}
 {\left[1+(t_N^\star)^2\right]^{N/2}},
 \qquad
-\varepsilon_{\max}=X_N^\star-1.
+\varepsilon_{\max}=\frac{X_N^\star}{L_0}-1.
 \label{eq:max_extension_finite_N}
 \end{equation}
 
@@ -491,630 +440,472 @@ y obtenemos
 \begin{equation}
 \boxed{
 X_N^\star\sim\sqrt{\frac{N}{e}},
-\qquad
-\varepsilon_{\max}\sim\sqrt{\frac{N}{e}},
 \qquad N\to\infty.
 }
 \label{eq:max_extension_scaling}
 \end{equation}
 
-Así, al aumentar el número de niveles, la estructura admite
-una extensión máxima mayor, proporcional a $\sqrt{N}$,
-mientras que la rotación necesaria en cada nivel disminuye
-como $N^{-1/2}$.
+Así, la longitud máxima crece como $\sqrt{N}$, mientras que
+la rotación correspondiente disminuye como $N^{-1/2}$. El
+comportamiento de $\varepsilon_{\max}$ depende además de cómo
+varía $L_0$ con $N$. Para la configuración inicial nula,
+$L_0=1$ y se recupera $\varepsilon_{\max}\sim\sqrt{N/e}$.
 
-Este límite también muestra por qué la expansión
-\eqref{eq:strain_small_angles} no basta para calcular la
-extensión máxima: aunque cada ángulo tiende a cero,
-$\sum_i(\theta_i^\star)^2\to 4$. Por ello, el efecto acumulado
-del producto de cosenos debe conservarse.
+\subsection{Configuración inicial proporcional al ángulo de máxima extensión}
+\label{sec:initial_fraction}
 
-La extensión máxima caracteriza una capacidad geométrica
-de la estructura. La trayectoria de equilibrio y la fuerza
-necesaria para aproximarse a ella dependen de las rigideces
-$\{k_i\}$ y de la elección de familias elásticas
-$\{\sigma_i\}$.
+Consideramos ahora una configuración natural uniforme,
+\begin{equation}
+\theta_i^{(0)}=c\,\theta_N^\star,
+\qquad i=1,\ldots,N,\qquad 0\leq c\leq1,
+\label{eq:theta_initial_fraction}
+\end{equation}
+donde $c$ es una constante independiente de $N$. Este intervalo
+sitúa el estado inicial en la rama de longitud creciente de la
+familia de ángulos iguales. Los ángulos naturales $\phi_{i,0}^{\pm}$
+quedan determinados por la Ec.~\eqref{eq:phi_rest_def}.
+La longitud inicial y la deformación máxima son entonces
+\begin{align}
+L_0(N,c)
+&=X_N(c\,\theta_N^\star)
+=\cos^N\!\left(\frac{c\,\theta_N^\star}{2}\right)
+\left[1+N\tan\!\left(\frac{c\,\theta_N^\star}{2}\right)\right],
+\label{eq:L0_fraction}
+\\
+\varepsilon_{\max}(N,c)
+&=\frac{X_N^\star}{X_N(c\,\theta_N^\star)}-1.
+\label{eq:strain_max_fraction}
+\end{align}
+
+Para describir geométricamente la extensión desde ese estado,
+podemos recorrer las configuraciones uniformes
+$\theta_i=u\,\theta_N^\star$, con $c\leq u\leq1$. Sobre esta familia,
+\begin{equation}
+\varepsilon_N(u;c)
+=\frac{X_N(u\,\theta_N^\star)}{X_N(c\,\theta_N^\star)}-1,
+\label{eq:strain_uniform_path}
+\end{equation}
+que crece desde cero en $u=c$ hasta $\varepsilon_{\max}(N,c)$
+en $u=1$. Esta parametrización describe una familia geométrica;
+la trayectoria de equilibrio bajo carga debe determinarse a partir
+de la energía y no tiene por qué mantener todos los ángulos iguales.
+
+Para $0<c\leq1$ fijo y $N\to\infty$, se obtiene
+\begin{equation}
+L_0(N,c)\sim c\,e^{-c^2/2}\sqrt{N},
+\qquad
+\boxed{
+\varepsilon_{\max}(N,c)
+\longrightarrow \frac{e^{(c^2-1)/2}}{c}-1.
+}
+\label{eq:strain_max_fraction_limit}
+\end{equation}
+Más generalmente, para $c\leq u\leq1$,
+\begin{equation}
+\varepsilon_N(u;c)
+\longrightarrow
+\frac{u}{c}\exp\!\left(\frac{c^2-u^2}{2}\right)-1.
+\label{eq:strain_uniform_limit}
+\end{equation}
+Por tanto, una fracción inicial $0<c<1$ produce una capacidad de
+extensión relativa que tiende a un valor finito y positivo, aunque
+las longitudes inicial y máxima crecen ambas como $\sqrt{N}$.
+Aumentar $c$ reduce esa capacidad; para $c=1$, la estructura parte
+de su longitud máxima y $\varepsilon_{\max}=0$. El caso $c=0$
+debe tratarse por separado: $L_0=1$ y la deformación máxima crece
+como $\sqrt{N/e}$. El límite anterior no es uniforme cerca de $c=0$.
+
+Aunque los ángulos iniciales tienden a cero para $c$ fijo,
+$\sum_i(\theta_i^{(0)})^2\to4c^2$ y, en la configuración de
+máxima extensión, $\sum_i(\theta_N^\star)^2\to4$. Por ello,
+la expansión~\eqref{eq:strain_small_angles} no basta para obtener
+estos límites: debe conservarse el efecto acumulado del producto
+de cosenos.
+
+La extensión máxima caracteriza una capacidad geométrica.
+La trayectoria de equilibrio y la fuerza necesaria para aproximarse
+a ella dependen de las rigideces $\{k_i\}$ y de la configuración
+natural $\boldsymbol{\theta}^{(0)}$.
 
 % =================================================
-\section{Hamiltoniano y condiciones de equilibrio}
+\section{Hamiltoniano a longitud impuesta: caso $w_i=1$}
 \label{sec:hamiltonian}
 % =================================================
 
-La respuesta mecánica de la estructura se obtiene a partir de
-la energía elástica y de la restricción sobre su longitud horizontal.
-Durante la deformación, la secuencia $\{\sigma_i\}$ permanece fija,
-mientras que los ángulos $\{\theta_i\}$ se ajustan al equilibrio.
-
-Para simplificar la notación, definimos
+En lo que sigue consideramos pesos efectivos uniformes. Con la
+convención de la Ec.~\eqref{eq:effective_weight}, esto significa
 \begin{equation}
-\boldsymbol{\theta}=(\theta_1,\ldots,\theta_N),
-\qquad
-X(\boldsymbol{\theta})
-\equiv Lx_{\max}^{(N)}(\boldsymbol{\theta}),
-\label{eq:X_def}
+w_i=2\,4^{N-i}k_i=1,
+\qquad k_i=\frac12\,4^{i-N}.
+\label{eq:uniform_weights}
 \end{equation}
-donde $X$ se calcula mediante la expresión geométrica
-\eqref{eq:Lxmax_product}. Con la normalización adoptada,
-la deformación longitudinal es $\varepsilon=X-1$.
+Esta elección compensa la multiplicidad geométrica de cada nivel;
+las dos familias de bisagras conservan la misma rigidez $k_i$.
+Estudiamos la rama de tracción conectada al reposo, con $f\geq0$,
+y tomamos $N\geq2$ y $\theta_i^{(0)}=c\,\theta_N^\star$,
+con $0<c<1$ fijo al variar $N$.
 
-Si la longitud impuesta es $\bar X$, la configuración debe
-satisfacer
+\subsection{Energía y restricción geométrica}
+
+Definimos los desplazamientos angulares y sus sumas acumuladas por
 \begin{equation}
-X(\boldsymbol{\theta})=\bar X.
-\label{eq:length_constraint}
+\delta_i=\theta_i-\theta_i^{(0)},
+\qquad D_i=\sum_{j<i}\delta_j.
 \end{equation}
-Introducimos entonces el Hamiltoniano efectivo
+Al sumar las contribuciones de ambas familias, los términos cruzados
+se cancelan y la energía toma la forma exacta
 \begin{equation}
 \boxed{
-\mathcal{H}(\boldsymbol{\theta},f;\bar X)
-=
-2\sum_{i=1}^{N}4^{N-i}k_i
-(\theta_i+\sigma_i S_i)^2
--
-f\left[X(\boldsymbol{\theta})-\bar X\right],
+E_N=\sum_{i=1}^{N}\left[(\delta_i-D_i)^2+(\delta_i+D_i)^2\right]
+=2\sum_{i=1}^{N}(\delta_i^2+D_i^2).
+}
+\label{eq:uniform_energy_matrix}
+\end{equation}
+Introduciendo la matriz de sumas acumuladas
+\begin{equation}
+T_{ij}=\begin{cases}1,&j<i,\\0,&j\geq i,\end{cases}
+\qquad K=4(I+T^{\mathsf T}T),
+\label{eq:K_uniform}
+\end{equation}
+se obtiene $E_N=\tfrac12\boldsymbol\delta^{\mathsf T}K\boldsymbol\delta$.
+La matriz $K$ es definida positiva y no depende de la configuración
+natural; esta última interviene en la geometría de la respuesta.
+
+Denotamos la longitud horizontal por
+\begin{equation}
+X(\boldsymbol\theta)\equiv Lx_{\max}^{(N)}(\boldsymbol\theta),
+\qquad L_0=X(\boldsymbol\theta^{(0)}).
+\label{eq:X_def}
+\end{equation}
+Al imponer una longitud $\ell$, la deformación prescrita es
+$\varepsilon=(\ell-L_0)/L_0$. Introducimos el Hamiltoniano restringido
+\begin{equation}
+\boxed{
+\mathcal H(\boldsymbol\theta,f;\ell)
+=\frac12\boldsymbol\delta^{\mathsf T}K\boldsymbol\delta
+-f\left[X(\boldsymbol\theta)-\ell\right],
+\qquad \ell=L_0(1+\varepsilon).
 }
 \label{eq:H_def_ki}
 \end{equation}
-donde
-\begin{equation}
-S_i=\sum_{m=1}^{i-1}\theta_m,
-\qquad S_1=0.
-\end{equation}
-La cantidad $f$ es la carga conjugada a la longitud normalizada
-$X$. A longitud impuesta, su valor se determina junto con los
-ángulos y representa la carga necesaria para mantener
-la extensión prescrita.
-
-El equilibrio requiere
-\begin{equation}
-\frac{\partial\mathcal{H}}{\partial\theta_j}=0,
-\qquad j=1,\ldots,N,
-\label{eq:stationary}
-\end{equation}
-junto con
-\begin{equation}
-\frac{\partial\mathcal{H}}{\partial f}
-=
--\left[X(\boldsymbol{\theta})-\bar X\right]=0,
-\label{eq:stationary_constraint}
-\end{equation}
-que recupera la restricción geométrica.
-
-La variación de $\theta_j$ modifica la deformación elástica
-de su propio nivel y las sumas acumuladas de los niveles $i>j$.
-Por tanto, las ecuaciones angulares se escriben como
+Aquí $f$ es el multiplicador de Lagrange conjugado a la longitud
+normalizada. A longitud impuesta, tanto $f$ como los ángulos son
+incógnitas. Las condiciones de equilibrio son
 \begin{equation}
 \boxed{
-\begin{aligned}
-4\Bigg[
-&4^{N-j}k_j(\theta_j+\sigma_j S_j)
-\\
-&+\sum_{i=j+1}^{N}
-4^{N-i}k_i\sigma_i(\theta_i+\sigma_i S_i)
-\Bigg]
--
-f\frac{\partial X}{\partial\theta_j}
-=0,
-\qquad j=1,\ldots,N.
-\end{aligned}
+K\boldsymbol\delta=f\,\nabla X(\boldsymbol\theta),
+\qquad X(\boldsymbol\theta)=\ell.
 }
 \label{eq:equilibrium_general}
 \end{equation}
-
-Estas ecuaciones expresan el balance entre la respuesta
-elástica de las bisagras y la contribución de la carga.
-El acoplamiento entre niveles aparece tanto en las rotaciones
-acumuladas $S_i$ como en la dependencia de la longitud global
-$X$ respecto de los ángulos.
-
-Si se prescribe la carga $f$ en lugar de la longitud, se resuelven
-las mismas ecuaciones angulares con $f$ conocido, sin imponer
-la Ec.~\eqref{eq:stationary_constraint}. La longitud y la
-deformación se obtienen entonces de la configuración resultante.
-
-Las soluciones de equilibrio estable corresponden a mínimos
-locales del potencial a carga fija, o de la energía elástica
-bajo la restricción a longitud fija.
-
+El equilibrio estable corresponde a un mínimo de la energía bajo
+la restricción. En un punto regular, donde $\nabla X\neq0$, una
+condición necesaria es que $K-f\nabla^2X$ sea semidefinida positiva
+sobre las variaciones $\mathbf v$ que satisfacen
+$\nabla X^{\mathsf T}\mathbf v=0$; la positividad estricta sobre
+ese espacio es suficiente para un mínimo local estricto.
+Las ecuaciones anteriores conservan la geometría trigonométrica
+completa. Puede parametrizarse la rama mediante $f$ y calcular
+$\ell=X(\boldsymbol\theta(f))$; a longitud impuesta se selecciona
+el valor de $f$ que satisface la restricción.
 
 % =================================================
-\section{Aproximación de pequeños ángulos}
+\section{Respuesta alrededor de la configuración natural}
 \label{sec:small}
 % =================================================
 
-En esta sección consideramos configuraciones con
-$|\theta_i|\ll 1$ para todos los niveles y desarrollamos el
-Hamiltoniano hasta segundo orden en los ángulos.
-La secuencia $\{\sigma_i\}$ permanece fija durante el cálculo.
-
-La energía elástica del modelo ya es cuadrática en
-$\{\theta_i\}$. Por tanto, la aproximación se introduce
-únicamente en la dependencia geométrica del término de carga.
-
-\subsection{Expansión de la longitud y del Hamiltoniano}
-
-Como se obtuvo en la sección de tamaños del sistema,
-la expansión de la longitud hasta segundo orden es
+Desarrollamos la geometría en los desplazamientos respecto de
+$\boldsymbol\theta^{(0)}$.
+Definimos
 \begin{equation}
-X^{(2)}(\boldsymbol{\theta})
-=
-1+\frac12\sum_{i=1}^{N}\theta_i
--\frac18\sum_{i=1}^{N}\theta_i^2.
-\label{eq:X_quadratic}
+\mathbf g=\nabla X\big|_{\boldsymbol\theta^{(0)}},
+\qquad Q=-\nabla^2X\big|_{\boldsymbol\theta^{(0)}}.
 \end{equation}
-La deformación correspondiente queda
+Para $N$ fijo, la expansión de la longitud es
 \begin{equation}
-\varepsilon^{(2)}
-=
-\frac12\sum_{i=1}^{N}\theta_i
--\frac18\sum_{i=1}^{N}\theta_i^2.
-\label{eq:epsilon_quadratic}
+X(\boldsymbol\theta^{(0)}+\boldsymbol\delta)
+=L_0+\mathbf g^{\mathsf T}\boldsymbol\delta
+-\frac12\boldsymbol\delta^{\mathsf T}Q\boldsymbol\delta
++O(\|\boldsymbol\delta\|^3).
+\label{eq:X_local}
 \end{equation}
+Esta expansión mantiene la dependencia exacta de sus coeficientes
+con los ángulos iniciales.
 
-Al sustituir esta expresión en el Hamiltoniano, obtenemos
+\subsection{Coeficientes geométricos para el reposo uniforme}
+
+Sea $t_0=\tan(c\theta_N^\star/2)$ y
+$P_0=\cos^N(c\theta_N^\star/2)$. Por la simetría de la longitud,
+\begin{equation}
+L_0=P_0(1+Nt_0),\qquad
+\mathbf g=g\mathbf1,\qquad Q=aI+b\mathbf1\mathbf1^{\mathsf T},
+\label{eq:uniform_geometry_coefficients}
+\end{equation}
+donde $\mathbf1$ es el vector de componentes unitarias y
+\begin{align}
+g&=\frac{P_0}{2}\left[1-t_0-(N-1)t_0^2\right],\\
+b&=\frac{P_0}{4}\left[2t_0-t_0^2-(N-2)t_0^3\right],\\
+a&=\frac{L_0}{4}-b.
+\label{eq:gab_def}
+\end{align}
+Para $N\geq2$ y $0<c<1$, estos coeficientes son positivos.
+En el límite de muchos niveles, con $c$ fijo,
 \begin{equation}
 \begin{aligned}
-\mathcal{H}^{(2)}
-=
-&\,2\sum_{i=1}^{N}4^{N-i}k_i
-(\theta_i+\sigma_i S_i)^2
-\\
-&-\frac f2\sum_{i=1}^{N}\theta_i
-+\frac f8\sum_{i=1}^{N}\theta_i^2
-+f(\bar X-1).
+L_0&\sim c e^{-c^2/2}\sqrt N,
+& g&\sim\frac{1-c^2}{2}e^{-c^2/2},\\
+a&\sim\frac{c}{4}e^{-c^2/2}\sqrt N,
+& b&\sim\frac{c(2-c^2)}{4\sqrt N}e^{-c^2/2}.
 \end{aligned}
-\label{eq:H_quadratic_theta}
+\label{eq:geometry_coefficients_scaling}
 \end{equation}
-El último término no interviene en las derivadas respecto
-de los ángulos, pero debe conservarse al variar $f$ para
-recuperar la restricción de longitud.
-
-\subsection{Formulación matricial de la energía}
-
-La estructura de los acoplamientos entre niveles puede
-representarse mediante una matriz triangular $A$, definida por
-\begin{equation}
-A_{ij}
-=
-\begin{cases}
-\sigma_i, & j<i,\\
-1, & j=i,\\
-0, & j>i.
-\end{cases}
-\label{eq:A_definition}
-\end{equation}
-De este modo,
-\begin{equation}
-(A\boldsymbol{\theta})_i
-=
-\theta_i+\sigma_i\sum_{j<i}\theta_j
-=
-\theta_i+\sigma_i S_i.
-\end{equation}
-
-Definimos también la matriz diagonal
-\begin{equation}
-W=\operatorname{diag}(w_1,\ldots,w_N),
-\qquad
-w_i=4^{N-i}k_i,
-\label{eq:W_definition}
-\end{equation}
-que incorpora la rigidez y la multiplicidad de cada nivel.
-La energía elástica se escribe entonces como
-\begin{equation}
-E_N
-=
-2\boldsymbol{\theta}^{\mathsf T}
-A^{\mathsf T}WA
-\boldsymbol{\theta}.
-\label{eq:energy_matrix_theta}
-\end{equation}
-La matriz $A$ contiene la elección de las familias elásticas,
-mientras que $W$ establece el peso energético de cada escala.
-
-\subsection{Variables transformadas}
-
-Para simplificar el término geométrico, introducimos
-\begin{equation}
-\alpha_i=1-\frac{\theta_i}{2},
-\qquad
-\theta_i=2(1-\alpha_i).
-\label{eq:alpha_definition}
-\end{equation}
-Las variables $\alpha_i$ son una reparametrización de los
-ángulos originales. La configuración $\theta_i=0$ corresponde
-a $\alpha_i=1$, y el régimen de pequeños ángulos requiere
-$|\alpha_i-1|\ll 1$.
-
-Completando el cuadrado en la
-Ec.~\eqref{eq:X_quadratic}, resulta
-\begin{equation}
-X^{(2)}
-=
-1+\frac N2-\frac12\sum_{i=1}^{N}\alpha_i^2.
-\label{eq:X_quadratic_alpha}
-\end{equation}
-Por tanto,
-\begin{equation}
-\boxed{
-\varepsilon^{(2)}
-=
-\frac12
-\left(
-N-\boldsymbol{\alpha}^{\mathsf T}\boldsymbol{\alpha}
-\right),
-}
-\label{eq:epsilon_alpha}
-\end{equation}
-donde $\boldsymbol{\alpha}=(\alpha_1,\ldots,\alpha_N)$.
-
-Denotando por $\mathbf{1}$ el vector de $N$ componentes iguales
-a uno, la energía elástica toma la forma
-\begin{equation}
-E_N
-=
-\frac12
-(\boldsymbol{\alpha}-\mathbf{1})^{\mathsf T}
-B
-(\boldsymbol{\alpha}-\mathbf{1}),
-\label{eq:energy_matrix_alpha}
-\end{equation}
-con
-\begin{equation}
-\boxed{
-B=16A^{\mathsf T}WA.
-}
-\label{eq:B_definition}
-\end{equation}
-
-El Hamiltoniano cuadrático queda así
-\begin{equation}
-\boxed{
-\begin{aligned}
-\mathcal{H}^{(2)}
-=
-&\,\frac12
-(\boldsymbol{\alpha}-\mathbf{1})^{\mathsf T}
-B
-(\boldsymbol{\alpha}-\mathbf{1})
-\\
-&+\frac f2
-\boldsymbol{\alpha}^{\mathsf T}\boldsymbol{\alpha}
-+f\left(\bar X-1-\frac N2\right).
-\end{aligned}
-}
-\label{eq:H_quadratic_alpha}
-\end{equation}
-Esta expresión separa la contribución elástica, determinada
-por $B$, de la contribución de la carga, proporcional a la
-norma cuadrática de $\boldsymbol{\alpha}$.
-
-\subsection{Equilibrio y solución discreta}
-
-La condición de estacionariedad respecto de
-$\boldsymbol{\alpha}$ conduce a
-\begin{equation}
-B(\boldsymbol{\alpha}-\mathbf{1})
-+
-f\boldsymbol{\alpha}
-=0.
-\end{equation}
-Por tanto,
-\begin{equation}
-\boxed{
-(B+fI)\boldsymbol{\alpha}=B\mathbf{1},
-}
-\label{eq:equilibrium_alpha}
-\end{equation}
-donde $I$ es la matriz identidad.
-
-Para $k_i>0$, la matriz $W$ es definida positiva y $A$ es
-invertible, ya que es triangular con diagonal unitaria.
-En consecuencia, $B$ es simétrica y definida positiva.
-Para cargas de tracción $f\geq0$, el sistema cuadrático
-tiene una solución única:
-\begin{equation}
-\boldsymbol{\alpha}(f)
-=
-(B+fI)^{-1}B\mathbf{1}.
-\label{eq:alpha_solution}
-\end{equation}
-
-Los ángulos originales se recuperan mediante
-\begin{equation}
-\boxed{
-\boldsymbol{\theta}(f)
-=
-2\left[\mathbf{1}-\boldsymbol{\alpha}(f)\right]
-=
-2f(B+fI)^{-1}\mathbf{1}.
-}
-\label{eq:theta_solution_quadratic}
-\end{equation}
-Una vez calculados, la deformación se obtiene de la
-Ec.~\eqref{eq:epsilon_alpha}.
-
-Si la carga está prescrita, estas expresiones determinan
-directamente la respuesta. Si se prescribe la longitud,
-el valor de $f$ debe satisfacer además
-\begin{equation}
-\frac12
-\left[
-N-\boldsymbol{\alpha}(f)^{\mathsf T}
-\boldsymbol{\alpha}(f)
-\right]
-=
-\bar X-1
-=
-\bar\varepsilon.
-\label{eq:quadratic_length_constraint}
-\end{equation}
-
-La matriz $B$ reúne la información sobre las rigideces y la
-secuencia de familias elásticas. La formulación anterior permite
-calcular la respuesta para cada realización de $\{\sigma_i\}$ y
-proporciona el punto de partida para analizar la contribución de
-los distintos modos a la deformación macroscópica.
-
-
-
-% =================================================
-\section{Análisis modal y respuesta fuerza--deformación}
-\label{sec:modal_response}
-% =================================================
-
-La formulación matricial permite identificar cómo las distintas
-combinaciones de rotaciones contribuyen a la deformación global.
-En esta sección analizamos la respuesta del Hamiltoniano
-cuadrático para una secuencia fija $\{\sigma_i\}$ y un conjunto
-de rigideces $\{k_i\}$.
-
-\subsection{Modos elásticos y respuesta a la carga}
-
-Como $B$ es real, simétrica y definida positiva, admite una
-base ortonormal de autovectores $\{\mathbf v_p\}_{p=1}^{N}$,
-con autovalores positivos $b_p$:
-\begin{equation}
-B\mathbf v_p=b_p\mathbf v_p,
-\qquad
-\mathbf v_p^{\mathsf T}\mathbf v_q=\delta_{pq}.
-\label{eq:B_eigenmodes}
-\end{equation}
-Cada autovector describe una combinación de rotaciones entre
-niveles, mientras que su autovalor mide la rigidez elástica
-asociada a esa combinación.
-
-Estos modos se definen sobre el índice jerárquico. Su forma
-depende de las rigideces y de la secuencia de familias
-elásticas contenidas en $B$.
-
-Expandimos las variables transformadas y el vector
-$\mathbf1$ en esta base:
-\begin{equation}
-\boldsymbol{\alpha}
-=
-\sum_{p=1}^{N}\widetilde{\alpha}_p\mathbf v_p,
-\qquad
-\mathbf1
-=
-\sum_{p=1}^{N}c_p\mathbf v_p,
-\label{eq:modal_expansion}
-\end{equation}
-donde
-\begin{equation}
-\widetilde{\alpha}_p
-=
-\mathbf v_p^{\mathsf T}\boldsymbol{\alpha},
-\qquad
-c_p=\mathbf v_p^{\mathsf T}\mathbf1.
-\end{equation}
-
-Al proyectar la ecuación de equilibrio
-$(B+fI)\boldsymbol{\alpha}=B\mathbf1$
-sobre cada modo, obtenemos
-\begin{equation}
-(b_p+f)\widetilde{\alpha}_p=b_pc_p.
-\end{equation}
-Por tanto,
-\begin{equation}
-\boxed{
-\widetilde{\alpha}_p(f)
-=
-\frac{b_p}{b_p+f}\,c_p.
-}
-\label{eq:modal_filter}
-\end{equation}
-
-El factor $b_p/(b_p+f)$ determina la respuesta de cada modo.
-Para $f\ll b_p$, su amplitud permanece próxima al valor
-descargado $c_p$. Cuando la carga se vuelve comparable con
-$b_p$, esa amplitud disminuye de forma apreciable.
-Los modos más blandos responden, por tanto, a cargas menores.
-
-La configuración angular se reconstruye usando
-$\boldsymbol{\theta}=2(\mathbf1-\boldsymbol{\alpha})$:
-\begin{equation}
-\boxed{
-\boldsymbol{\theta}(f)
-=
-2\sum_{p=1}^{N}
-\frac{f}{b_p+f}\,c_p\mathbf v_p.
-}
-\label{eq:theta_modal}
-\end{equation}
-Así, la rotación de cada nivel resulta de la superposición
-de las contribuciones modales.
-
-\subsection{Relación fuerza--deformación}
-
-La ortonormalidad de los autovectores implica
-\begin{equation}
-\boldsymbol{\alpha}^{\mathsf T}\boldsymbol{\alpha}
-=
-\sum_{p=1}^{N}\widetilde{\alpha}_p^{\,2},
-\qquad
-\sum_{p=1}^{N}c_p^2
-=
-\mathbf1^{\mathsf T}\mathbf1=N.
-\end{equation}
-Definimos los pesos modales
-\begin{equation}
-P_p=c_p^2
-=
-\left(\mathbf v_p^{\mathsf T}\mathbf1\right)^2,
-\qquad
-\sum_{p=1}^{N}P_p=N.
-\label{eq:modal_weights}
-\end{equation}
-Estos pesos cuantifican la contribución de cada modo a la
-respuesta longitudinal bajo la carga considerada.
-
-Sustituyendo la solución modal en
-$\varepsilon^{(2)}=(N-\|\boldsymbol{\alpha}\|^2)/2$,
-obtenemos
-\begin{equation}
-\boxed{
-\varepsilon^{(2)}(f)
-=
-\frac12
-\sum_{p=1}^{N}P_p
-\left[
-1-
-\left(\frac{b_p}{b_p+f}\right)^2
-\right].
-}
-\label{eq:strain_modal}
-\end{equation}
-
-La respuesta macroscópica queda determinada por las rigideces
-$b_p$ y los pesos $P_p$. Una rigidez pequeña permite que un
-modo responda a cargas débiles, mientras que su peso establece
-cuánto contribuye a la deformación global. En particular,
-un modo con $P_p=0$ no contribuye a esta respuesta.
-
-Definimos la susceptibilidad longitudinal como
-\begin{equation}
-\chi(f)
-=
-\frac{\mathrm{d}\varepsilon^{(2)}}{\mathrm{d}f}.
-\end{equation}
-Derivando la Ec.~\eqref{eq:strain_modal}, resulta
-\begin{equation}
-\boxed{
-\chi(f)
-=
-\sum_{p=1}^{N}
-P_p\frac{b_p^2}{(b_p+f)^3}.
-}
-\label{eq:modal_compliance}
-\end{equation}
-Para $f\geq0$, esta cantidad es positiva, de modo que la
-deformación aumenta monótonamente con la carga. Además,
-\begin{equation}
-\frac{\mathrm{d}\chi}{\mathrm{d}f}
-=
--3\sum_{p=1}^{N}
-P_p\frac{b_p^2}{(b_p+f)^4}
-<0.
-\label{eq:compliance_derivative}
-\end{equation}
-Por tanto, la susceptibilidad disminuye al aumentar la carga:
-cada incremento adicional de deformación requiere una
-carga progresivamente mayor.
 
 \subsection{Régimen hookeano}
 
-Para un sistema finito, definimos
-\begin{equation}
-b_{\min}=\min_p b_p>0.
-\end{equation}
-Si $f\ll b_{\min}$, todos los factores modales pueden
-expandirse en potencias de la carga:
-\begin{equation}
-\left(\frac{b_p}{b_p+f}\right)^2
-=
-1-\frac{2f}{b_p}
-+\frac{3f^2}{b_p^2}
-+O\!\left(\frac{f^3}{b_p^3}\right).
-\end{equation}
-La deformación toma entonces la forma
-\begin{equation}
-\varepsilon^{(2)}(f)
-=
-f\sum_{p=1}^{N}\frac{P_p}{b_p}
--
-\frac{3f^2}{2}\sum_{p=1}^{N}\frac{P_p}{b_p^2}
-+O(f^3).
-\label{eq:strain_low_force}
-\end{equation}
-
-A primer orden,
+A primer orden en la carga, las ecuaciones de equilibrio dan
+$\boldsymbol\delta=fK^{-1}\mathbf g+O(f^2)$. Por tanto,
 \begin{equation}
 \boxed{
-\varepsilon^{(2)}\simeq\chi_0 f,
-\qquad
-\chi_0=\sum_{p=1}^{N}\frac{P_p}{b_p}.
+\varepsilon=\chi_0 f+O(f^2),\qquad
+\chi_0=\frac{g^2}{L_0}h_N(0).
 }
 \label{eq:hookean_compliance}
 \end{equation}
-La rigidez longitudinal efectiva en este régimen es
+Aquí hemos introducido, para $q\geq0$, la función
 \begin{equation}
-K_{\mathrm{eff}}
-=
-\left.
-\frac{\mathrm{d}f}{\mathrm{d}\varepsilon^{(2)}}
-\right|_{f=0}
-=
-\chi_0^{-1}.
-\label{eq:effective_stiffness}
+h_N(q)=\mathbf1^{\mathsf T}(K+qI)^{-1}\mathbf1,
+\label{eq:resolvent_definition}
 \end{equation}
+que recoge la respuesta angular a una carga uniforme.
+La rigidez inicial respecto de la deformación relativa es
+$K_{\mathrm{eff}}=(\mathrm df/\mathrm d\varepsilon)_{f=0}=\chi_0^{-1}$;
+respecto de la elongación absoluta es
+$(\mathrm df/\mathrm d\ell)_{\ell=L_0}=(g^2h_N(0))^{-1}$.
 
-Todo sistema finito con rigideces positivas presenta así
-un régimen hookeano suficientemente cerca del estado
-descargado. Su susceptibilidad está especialmente influida
-por los modos de baja rigidez que poseen un peso apreciable.
+Para calcular $h_N$, sea $\mathbf v=(K+qI)^{-1}\mathbf1$ y
+$s_j=\sum_{i=1}^{j}v_i$, con $s_0=0$. Escribiendo $d=4+q$,
+las ecuaciones se reducen a
+\begin{equation}
+d(2s_j-s_{j-1}-s_{j+1})+4s_j=0\quad(1\leq j<N),
+\qquad d(s_N-s_{N-1})=1.
+\end{equation}
+Su solución proporciona
+\begin{equation}
+\boxed{
+h_N(q)=\frac{\sinh(N\kappa)}
+{d[\sinh(N\kappa)-\sinh((N-1)\kappa)]},
+\qquad \cosh\kappa=1+\frac{2}{d}.
+}
+\label{eq:resolvent_exact}
+\end{equation}
+En particular, $h_N(0)\to(1+\sqrt5)/8$. Así,
+\begin{equation}
+\chi_0\sim
+\frac{(1+\sqrt5)(1-c^2)^2e^{-c^2/2}}{32c\sqrt N},
+\qquad K_{\mathrm{eff}}\propto\sqrt N.
+\label{eq:hookean_scaling}
+\end{equation}
+Para cada tamaño finito existe, por tanto, una respuesta hookeana
+cerca del reposo. Su intervalo de validez puede disminuir al
+incrementar $N$.
 
 % =================================================
-\section{Caso $w_i=1$}
-\label{sec:uniform_weights}
+\section{Cruce hacia la respuesta no hookeana}
+\label{sec:crossover}
 % =================================================
 
-Consideramos el caso en que los pesos elásticos efectivos
-son iguales en todos los niveles:
+\subsection{Solución con la curvatura geométrica}
+
+Al conservar el término cuadrático de la longitud, el equilibrio
+del modelo local satisface
 \begin{equation}
-w_i=4^{N-i}k_i=1,
-\qquad
-k_i=4^{i-N}.
-\label{eq:uniform_weights}
+(K+fQ)\boldsymbol\delta_{\mathrm{loc}}=fg\mathbf1.
+\label{eq:local_equilibrium}
 \end{equation}
-Esta elección compensa la multiplicidad geométrica mediante
-la rigidez de las bisagras. La energía y la matriz elástica
-se reducen a
+Introduciendo $q=af$ y usando la estructura de $Q$, se obtiene
 \begin{equation}
-E_N=2\sum_{i=1}^{N}(\theta_i+\sigma_iS_i)^2,
-\qquad
-B=16A^{\mathsf T}A.
-\label{eq:uniform_energy_matrix}
+\boxed{
+\boldsymbol\delta_{\mathrm{loc}}(f)=
+\frac{fg}{1+fbh_N(q)}(K+qI)^{-1}\mathbf1.
+}
+\label{eq:local_solution}
 \end{equation}
+La deformación correspondiente es
+\begin{equation}
+\varepsilon_{\mathrm{loc}}=\frac{1}{L_0}\left[
+g\mathbf1^{\mathsf T}\boldsymbol\delta_{\mathrm{loc}}
+-\frac a2\|\boldsymbol\delta_{\mathrm{loc}}\|^2
+-\frac b2(\mathbf1^{\mathsf T}\boldsymbol\delta_{\mathrm{loc}})^2\right].
+\label{eq:local_strain}
+\end{equation}
+Estas expresiones resuelven el modelo local de segundo orden.
+Aproximan la respuesta trigonométrica mientras las contribuciones
+geométricas omitidas sean pequeñas, condición que se precisa más
+adelante para el régimen intermedio.
 
-Aunque los pesos sean uniformes, la respuesta sigue
-dependiendo de la secuencia $\{\sigma_i\}$, que determina
-los acoplamientos contenidos en $A$. Consideramos elecciones
-independientes con probabilidades
-$\mathbb P(\sigma_i=\pm1)=1/2$.
+Para $N$ fijo, la expansión alrededor de $f=0$ coincide con la del
+modelo trigonométrico hasta segundo orden:
+\begin{equation}
+\varepsilon=\frac{g^2h_N(0)}{L_0}f
+-\frac{3g^2}{2L_0}
+\left[aJ_N+b h_N(0)^2\right]f^2+O(f^3),
+\qquad J_N=-h_N'(0)=\mathbf1^{\mathsf T}K^{-2}\mathbf1>0.
+\label{eq:strain_low_force}
+\end{equation}
+El signo negativo indica un endurecimiento inicial: la deformación
+crece menos que la extrapolación lineal.
+
+\subsection{Escalas de cruce}
+
+Para muchos niveles, el cambio de respuesta ocurre cuando $q=af$
+deja de ser pequeño frente a la escala elástica de orden unidad.
+Por ello, para $c$ fijo en $(0,1)$,
+\begin{equation}
+\boxed{
+f_\times\propto a^{-1}\propto N^{-1/2},
+\qquad \varepsilon_\times\propto\frac{g^2}{aL_0}\propto N^{-1}.
+}
+\label{eq:crossover_scaling}
+\end{equation}
+Estas relaciones definen escalas, no una discontinuidad. Para
+asignar una posición concreta al cruce puede fijarse una tolerancia
+$0<\rho<1$ y definir $f_\times$ por
+\begin{equation}
+\varepsilon(f_\times)=(1-\rho)\chi_0f_\times,
+\label{eq:crossover_criterion}
+\end{equation}
+por ejemplo $\rho=0.1$. La tolerancia cambia el prefactor, pero no
+las potencias de $N$ anteriores en el límite considerado.
+
+% =================================================
+\section{Régimen no hookeano y exponente}
+\label{sec:modal_response}
+% =================================================
+
+\subsection{Respuesta intermedia para muchos niveles}
+
+La Ec.~\eqref{eq:resolvent_exact}, junto con la solución local,
+permite describir el cruce. Si $N\kappa\gg1$, el efecto del extremo
+$i=1$ es despreciable y
+\begin{equation}
+h_N(q)\simeq h_\infty(q)
+=\frac{1+\sqrt{5+q}}{2(4+q)}.
+\label{eq:resolvent_limit}
+\end{equation}
+En la ventana $1\ll q\ll N^2$, esto implica
+\begin{equation}
+h_N(q)\simeq\frac{1}{2\sqrt q},
+\qquad -h_N'(q)\simeq\frac{1}{4q^{3/2}}.
+\label{eq:resolvent_power}
+\end{equation}
+Las variaciones angulares se distribuyen sobre un número de niveles
+de orden $\kappa^{-1}\sim\sqrt q/2$ próximo al extremo $i=N$.
+En esta ventana dicho número es grande, pero pequeño frente a $N$.
+Además, $fbh_N(q)=O(\sqrt q/N)$, por lo que el término colectivo
+proporcional a $b$ es subdominante. Para $q=O(1)$, su
+contribución es de orden $N^{-1}$ y también puede despreciarse
+en el límite de muchos niveles.
+
+Al despreciar esas contribuciones colectivas y usar
+$\| (K+qI)^{-1}\mathbf1\|^2=-h_N'(q)$ en
+la Ec.~\eqref{eq:local_strain}, resulta
+\begin{equation}
+\varepsilon\simeq\frac{g^2}{aL_0}\mathcal F_N(q),
+\qquad
+\mathcal F_N(q)=q h_N(q)+\frac{q^2}{2}h_N'(q).
+\label{eq:crossover_function}
+\end{equation}
+Para $q\ll1$, $\mathcal F_N(q)\simeq h_N(0)q$ y se recupera
+la ley de Hooke.
+
+La función de cruce también fija los prefactores de las escalas.
+Sea $\mathcal F_\infty(q)=q h_\infty(q)+q^2h_\infty'(q)/2$ y
+sea $q_\rho>0$ la solución de
+\begin{equation}
+\frac{\mathcal F_\infty(q_\rho)}{h_\infty(0)q_\rho}=1-\rho.
+\end{equation}
+Para $c$ y $\rho$ fijos, el criterio de la
+Ec.~\eqref{eq:crossover_criterion} conduce a
+\begin{equation}
+\begin{aligned}
+f_\times&\sim\frac{4q_\rho e^{c^2/2}}{c\sqrt N},\\
+\varepsilon_\times&\sim
+\frac{(1-c^2)^2}{c^2}\frac{\mathcal F_\infty(q_\rho)}{N}.
+\end{aligned}
+\label{eq:crossover_prefactors}
+\end{equation}
+Estas equivalencias incluyen el prefactor asociado al criterio
+escogido, además de las potencias de $N$.
+
+Para $1\ll q\ll N^2$,
+\begin{equation}
+\mathcal F_N(q)\simeq\frac38\sqrt q,
+\end{equation}
+de donde
+\begin{equation}
+\boxed{
+\varepsilon\simeq\frac{3g^2}{8L_0\sqrt a}\sqrt f,
+\qquad
+f\simeq\frac{64aL_0^2}{9g^4}\varepsilon^2.
+}
+\label{eq:nonhookean_law}
+\end{equation}
+El término lineal de la longitud aporta $\tfrac12\sqrt q$ a
+$\mathcal F_N$, mientras que el cuadrático aporta
+$-\tfrac18\sqrt q$. Ambos son del mismo orden en esta ventana;
+su suma explica el prefactor $3/8$.
 
 
+\subsection{Exponente y dominio de validez}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.55\textwidth]{figures/force_vs_epsilon.png}
-  \caption{Respuesta fuerza--deformación para pesos
-  elásticos uniformes $w_i=1$ y los números de niveles
-  indicados en la leyenda. Las curvas representan
-  promedios sobre realizaciones de las familias elásticas.}
-  \label{fig:angles}
-\end{figure}
+Con la convención $f\propto\varepsilon^\beta$, el exponente
+intermedio es
+\begin{equation}
+\boxed{\beta=2.}
+\label{eq:nonhookean_exponent}
+\end{equation}
+Equivalentemente, $\varepsilon\propto f^{1/2}$. Al introducir
+los coeficientes asintóticos de la geometría, la ley constitutiva queda
+\begin{equation}
+f\simeq
+\frac{256c^3e^{c^2/2}}{9(1-c^2)^4}
+N^{3/2}\varepsilon^2.
+\label{eq:nonhookean_size_scaling}
+\end{equation}
+Por tanto, el exponente describe la dependencia con la deformación;
+el prefactor conserva una dependencia explícita con el tamaño.
 
+Este resultado corresponde al límite $N\to\infty$, con
+$0<c<1$ fijo, $q\to\infty$ y $\sqrt q/N\to0$.
+La solución angular dominante tiene el perfil
+\begin{equation}
+\delta_i\simeq\frac ga\exp[-\kappa(N-i)],
+\qquad \kappa\simeq\frac{2}{\sqrt q}.
+\label{eq:intermediate_profile}
+\end{equation}
+Así, $\max_i|\delta_i|=O(N^{-1/2})$ y, si
+$m=\kappa^{-1}$, entonces
+$\sum_i\delta_i=O(m/\sqrt N)$ y
+$\sum_i\delta_i^2=O(m/N)$. La condición $m/N\to0$ controla
+las variaciones acumuladas del producto de cosenos y de la suma
+de tangentes. Junto con los pequeños desplazamientos individuales,
+permite despreciar los términos geométricos de orden superior.
+La pequeñez de cada ángulo, por sí sola, no sería suficiente.
 
+En términos de deformación, para $c$ fijo la ventana corresponde a
+$N^{-1}\ll\varepsilon\ll1$, con
+$\varepsilon/\varepsilon_{\max}\to0$ en el límite considerado.
+La aproximación no es uniforme cuando $c\to0$ o $c\to1$;
+los extremos $c=0$ y $c=1$ requieren un tratamiento separado.
+
+Para tamaños finitos, el cruce es suave y puede caracterizarse por
+\begin{equation}
+\beta_{\mathrm{ef}}=
+\frac{\mathrm d\log f}{\mathrm d\log\varepsilon}.
+\end{equation}
+Este valor parte de uno en la zona hookeana y se aproxima a dos
+cuando existe una separación suficiente entre las escalas de la
+ventana intermedia. No se presupone una potencia única para toda
+la curva fuerza--deformación.
 
 \end{document}

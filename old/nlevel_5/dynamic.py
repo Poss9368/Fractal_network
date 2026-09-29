@@ -7,12 +7,7 @@ from matplotlib.animation import FFMpegWriter
 try:
     from .plot_nlevels import draw_total_levels, pint_box, print_square, print_structure
 except ImportError:  # Mantiene la ejecución directa: python dynamic.py
-    from plot_nlevels import draw_total_levels, pint_box, print_square, print_structure
-
-try:
-    from .fire import fire_minimize, FIREResult
-except ImportError:
-    from fire import fire_minimize, FIREResult
+    from old.nlevel.plot_nlevels import draw_total_levels, pint_box, print_square, print_structure
 
 square_color = '#4DD0E1'  # color del cuadrado
 
@@ -48,11 +43,11 @@ def maximum_length_angle(n: int) -> float:
     t_star = 2.0 / (1.0 + np.sqrt(4.0 * n - 3.0))
     return 2.0 * np.arctan(t_star)
 
-
 @njit
 def rest_thetas_from_noise(noise: np.ndarray) -> np.ndarray:
-    """Construye theta^(0) = theta* + noise, con noise en radianes."""
-    return maximum_length_angle(len(noise)) + noise
+    """Construye theta^(0) = theta* + noise, con noise medido en radianes."""
+    theta_star = maximum_length_angle(len(noise))
+    return theta_star + noise
 
 
 @njit
@@ -109,19 +104,12 @@ def structure_size(thetas: np.ndarray) -> tuple:
 @njit
 def potential_by_level(
     thetas: np.ndarray,
-    w_i: np.ndarray,
+    k_i: np.ndarray,
     family_weights: np.ndarray,
     rest_deformations: np.ndarray,
 ) -> np.ndarray:
     """
     Energía por nivel con familias y equilibrios configurables.
-
-    ``w_i[i]`` es el peso elástico efectivo completo del nivel:
-
-        w_i[i] = 4**(N-i-1) * k_i[i]
-
-    Debe entregarse ya calculado. De esta manera nunca se construyen por
-    separado potencias enormes y rigideces microscópicas diminutas.
 
     family_weights[i] = [w_i^-, w_i^+] contiene pesos en [0, 1].
     rest_deformations[i] = [r_i^{-,0}, r_i^{+,0}] contiene los valores
@@ -133,8 +121,7 @@ def potential_by_level(
     N = len(thetas)
 
     if (
-        w_i.ndim != 1
-        or len(w_i) != N
+        len(k_i) != N
         or family_weights.ndim != 2
         or family_weights.shape[0] != N
         or family_weights.shape[1] != 2
@@ -142,28 +129,16 @@ def potential_by_level(
         or rest_deformations.shape[0] != N
         or rest_deformations.shape[1] != 2
     ):
-        raise ValueError(
-            "w_i debe tener forma (N,), y family_weights y "
-            "rest_deformations deben tener forma (N, 2)"
-        )
+        raise ValueError("family_weights y rest_deformations deben tener forma (N, 2)")
 
     sum_thetas = 0.0
     energy_by_levels = np.zeros(N)
 
     for i in range(N):
-        elastic_prefactor = w_i[i]
+        elastic_prefactor = 4.0 ** (N - (i + 1)) * k_i[i]
         weight_minus = family_weights[i, 0]
         weight_plus = family_weights[i, 1]
-        if not np.isfinite(elastic_prefactor) or elastic_prefactor < 0.0:
-            raise ValueError("los pesos efectivos w_i deben ser finitos y no negativos")
-        if (
-            not np.isfinite(weight_minus)
-            or not np.isfinite(weight_plus)
-            or weight_minus < 0.0
-            or weight_minus > 1.0
-            or weight_plus < 0.0
-            or weight_plus > 1.0
-        ):
+        if weight_minus < 0.0 or weight_minus > 1.0 or weight_plus < 0.0 or weight_plus > 1.0:
             raise ValueError("los pesos de las familias deben pertenecer a [0, 1]")
 
         deformation_minus = (
@@ -184,26 +159,16 @@ def potential_by_level(
 @njit
 def potential(
     thetas: np.ndarray,
-    w_i: np.ndarray,
+    k_i: np.ndarray,
     family_weights: np.ndarray,
     rest_deformations: np.ndarray,
 ) -> float:
     """
-    Energía total para pesos efectivos y deformaciones naturales.
-
-    La convención es
-
-        E = sum_i w_i[i] * (w_i^- * residual_-^2
-                            + w_i^+ * residual_+^2),
-
-    donde ``w_i`` ya incluye el factor de multiplicidad geométrica
-    ``4**(N-i-1)``. ``family_weights`` sólo elige cuánto contribuye cada
-    familia phi-/phi+ dentro del nivel.
+    Energía total para pesos y deformaciones naturales independientes.
     """
     n = len(thetas)
     if (
-        w_i.ndim != 1
-        or len(w_i) != n
+        len(k_i) != n
         or family_weights.ndim != 2
         or family_weights.shape[0] != n
         or family_weights.shape[1] != 2
@@ -211,27 +176,15 @@ def potential(
         or rest_deformations.shape[0] != n
         or rest_deformations.shape[1] != 2
     ):
-        raise ValueError(
-            "w_i debe tener forma (N,), y family_weights y "
-            "rest_deformations deben tener forma (N, 2)"
-        )
+        raise ValueError("family_weights y rest_deformations deben tener forma (N, 2)")
 
     sum_thetas = 0.0
     energy = 0.0
     for i in range(n):
-        elastic_prefactor = w_i[i]
+        elastic_prefactor = 4.0 ** (n - i - 1) * k_i[i]
         weight_minus = family_weights[i, 0]
         weight_plus = family_weights[i, 1]
-        if not np.isfinite(elastic_prefactor) or elastic_prefactor < 0.0:
-            raise ValueError("los pesos efectivos w_i deben ser finitos y no negativos")
-        if (
-            not np.isfinite(weight_minus)
-            or not np.isfinite(weight_plus)
-            or weight_minus < 0.0
-            or weight_minus > 1.0
-            or weight_plus < 0.0
-            or weight_plus > 1.0
-        ):
+        if weight_minus < 0.0 or weight_minus > 1.0 or weight_plus < 0.0 or weight_plus > 1.0:
             raise ValueError("los pesos de las familias deben pertenecer a [0, 1]")
 
         deformation_minus = (
@@ -251,15 +204,14 @@ def potential(
 @njit
 def potential_gradient(
     thetas: np.ndarray,
-    w_i: np.ndarray,
+    k_i: np.ndarray,
     family_weights: np.ndarray,
     rest_deformations: np.ndarray,
 ) -> np.ndarray:
     n = len(thetas)
 
     if (
-        w_i.ndim != 1
-        or len(w_i) != n
+        len(k_i) != n
         or family_weights.ndim != 2
         or family_weights.shape[0] != n
         or family_weights.shape[1] != 2
@@ -267,10 +219,7 @@ def potential_gradient(
         or rest_deformations.shape[0] != n
         or rest_deformations.shape[1] != 2
     ):
-        raise ValueError(
-            "w_i debe tener forma (N,), y family_weights y "
-            "rest_deformations deben tener forma (N, 2)"
-        )
+        raise ValueError("family_weights y rest_deformations deben tener forma (N, 2)")
 
     direct_terms = np.zeros(n)
     previous_angle_terms = np.zeros(n)
@@ -279,20 +228,10 @@ def potential_gradient(
     sum_thetas = 0.0
 
     for i in range(n):
-        effective_weight = w_i[i]
-        coefficient = 2.0 * effective_weight
+        coefficient = 2.0 * 4.0 ** (n - i - 1) * k_i[i]
         weight_minus = family_weights[i, 0]
         weight_plus = family_weights[i, 1]
-        if not np.isfinite(effective_weight) or effective_weight < 0.0:
-            raise ValueError("los pesos efectivos w_i deben ser finitos y no negativos")
-        if (
-            not np.isfinite(weight_minus)
-            or not np.isfinite(weight_plus)
-            or weight_minus < 0.0
-            or weight_minus > 1.0
-            or weight_plus < 0.0
-            or weight_plus > 1.0
-        ):
+        if weight_minus < 0.0 or weight_minus > 1.0 or weight_plus < 0.0 or weight_plus > 1.0:
             raise ValueError("los pesos de las familias deben pertenecer a [0, 1]")
 
         residual_minus = (
@@ -367,7 +306,7 @@ def constraint_term_gradient(thetas: np.ndarray) -> np.ndarray:
 @njit
 def modified_hamiltonian(
     thetas: np.ndarray,
-    w_i: np.ndarray,
+    k_i: np.ndarray,
     family_weights: np.ndarray,
     rest_deformations: np.ndarray,
     lambda_restriction,
@@ -375,23 +314,20 @@ def modified_hamiltonian(
     """
     Potencial a fuerza impuesta H = E - lambda * X.
 
-    ``w_i`` contiene los pesos efectivos completos por nivel; no son las
-    rigideces microscópicas ``k_i``.
-
     Args:
         thetas (array): Angles of the system.
     Returns:
         float: Valor del potencial mecánico.
     """
 
-    energy = potential(thetas, w_i, family_weights, rest_deformations)
+    energy = potential(thetas, k_i, family_weights, rest_deformations)
     constraint = constraint_term(thetas)
     return energy - lambda_restriction * constraint
 
 @njit
 def modified_hamiltonian_gradient(
     thetas: np.ndarray,
-    w_i: np.ndarray,
+    k_i: np.ndarray,
     family_weights: np.ndarray,
     rest_deformations: np.ndarray,
     lambda_restriction,
@@ -399,15 +335,13 @@ def modified_hamiltonian_gradient(
     """
     Gradiente de H = E - lambda * X respecto de los ángulos theta.
 
-    ``w_i`` usa la misma convención efectiva que :func:`potential`.
-
     Args:
         thetas (array): Angles of the system.
     Returns:
         array: Gradiente del potencial mecánico.
     """
     energy_grad: np.ndarray = potential_gradient(
-        thetas, w_i, family_weights, rest_deformations
+        thetas, k_i, family_weights, rest_deformations
     )
     constraint_gradient: np.ndarray = constraint_term_gradient(thetas)
     return energy_grad - lambda_restriction * constraint_gradient
@@ -417,27 +351,23 @@ def mean_error(x: np.ndarray) -> float:
 
 def conjudate_gradient(
     thetas: np.ndarray,
-    w_i: np.ndarray,
+    k_i: np.ndarray,
     family_weights: np.ndarray,
     rest_deformations: np.ndarray,
     lambda_restriction: float,
 ) -> np.ndarray:
-    """Minimiza H por continuación usando directamente los pesos ``w_i``."""
-    # Copiamos para que el llamador decida explícitamente si quiere usar
-    # continuación entre fuerzas; la función no altera su estado de entrada.
-    thetas = thetas.copy()
-    presicion: float    = 1e-7    # Precisión para la minimización
-    step_size: float    = 1e-6   # Tamaño del paso de integración para minimización
-    n: int              = len(thetas)  # Número de ángulos del sistema
+    presicion: float    = 1e-7    # Presición para la minimización
+    step_size: float    = 3e-5   # Tamaño del paso de integración para minimización
+    n: np.ndarray       = len(thetas) # Numero de angulos del sistema"
     thetas_grad: np.ndarray = modified_hamiltonian_gradient(
-        thetas, w_i, family_weights, rest_deformations, lambda_restriction
+        thetas, k_i, family_weights, rest_deformations, lambda_restriction
     )
     error: float             = mean_error(thetas_grad) # initial error
     
     thetas_velocity_CG: np.ndarray  = np.array(np.zeros(n))  
     alpha_CG: float                 = 0 
     iter: int                       = 0
-    max_iter: int                   = 10_000_000_000
+    max_iter: int                   = 1e10
     
     while error > presicion and iter < max_iter:
         if iter%10000 == 0:
@@ -445,7 +375,7 @@ def conjudate_gradient(
         thetas_velocity_CG = thetas_grad + alpha_CG * thetas_velocity_CG
         thetas -= step_size * thetas_velocity_CG
         thetas_grad = modified_hamiltonian_gradient(
-            thetas, w_i, family_weights, rest_deformations,
+            thetas, k_i, family_weights, rest_deformations,
             lambda_restriction,
         )
         new_error = mean_error(thetas_grad)
@@ -464,98 +394,63 @@ def conjudate_gradient(
     return thetas
 
 def example_animation():
-    """Anima el caso uniforme phi+ usando pesos efectivos sin potencias de 4."""
-    n = 4
+    # Ángulos iniciales del sistema
+    n = 4  # Debe ser par para construir ruido binario balanceado.
 
-    # El estado inicial también es el estado natural de la energía. Elegir
-    # una fracción menor que uno deja al sistema bajo el máximo geométrico.
-    rest_fraction = 0.1
-    theta_star = maximum_length_angle(n)
-    thetas_rest = np.full(n, rest_fraction * theta_star)
-    rest_deformations = rest_deformations_from_thetas(thetas_rest)
-
-    # Configuraciones deterministas útiles:
-    family_weights = np.ones((n, 2))  # ambas familias completas
-    # family_weights = np.column_stack((np.ones(n), np.zeros(n)))  # sólo phi-
-    # family_weights = np.column_stack((np.zeros(n), np.ones(n)))  # sólo phi+
+    # Ruido binario en theta^(0), medido en radianes.
+    seed  = 5
+    rng = np.random.RandomState(seed)
+    
+    noise_amplitude = 1.0 * maximum_length_angle(n)
+    noise = noise_amplitude * balanced_random_signs(n, rng)
+    thetas_init = rest_thetas_from_noise(noise)
+    rest_deformations = rest_deformations_from_thetas(thetas_init)
+    family_weights = rng.random_sample((n, 2))
+    print(f"Noise: {noise}")
     print(f"Family weights [phi-, phi+]:\n{family_weights}")
 
-    # w_i es directamente 4**(N-i-1) * k_i. Para el caso uniforme todos
-    # los niveles tienen el mismo peso efectivo; no se calculan potencias.
-    w_i = np.ones(n, dtype=float)
+    # La misma rigidez microscópica en todos los niveles:
+    # k_i = 4^(-N), por lo que w_i = 4^(N-i) k_i = 4^(-i).
+    microscopic_stiffness = np.exp2(-2.0 * n)  # 4**(-N)
+    k_i = np.full(n, microscopic_stiffness, dtype=float)
 
-    rest_length = structure_size(thetas_rest)[0]
-    maximum_length = structure_size(np.full(n, theta_star))[0]
-    available_extension = maximum_length - rest_length
-
-    # La escala natural es q=f*X0. ``lambda_restriction`` es la fuerza f
-    # que multiplica -X en el Hamiltoniano.
-    q_values = np.logspace(-5, 3, 60)
-    lambda_values = q_values / rest_length
+    # Rango de valores para lambda_restriction
+    lambda_values = np.logspace(-5, 1.5, 60) 
 
     fig, (ax1, ax2) = plt.subplots(
         1, 2, figsize=(10, 5),
         gridspec_kw={'width_ratios': [5.2, 4.8]}
     )
 
-    thetas_current = thetas_rest.copy()
-    last_frame = -1
-
     def update(frame):
-        nonlocal thetas_current, last_frame
-        # FuncAnimation puede volver a pedir el primer cuadro al dibujar.
-        # Reiniciamos en ese caso y mantenemos continuación para cuadros
-        # estrictamente crecientes.
-        if frame <= last_frame:
-            thetas_current = thetas_rest.copy()
-        last_frame = frame
         lambda_restriction = lambda_values[frame]
-        thetas_current = conjudate_gradient(
-            thetas_current, w_i, family_weights, rest_deformations,
+        thetas = conjudate_gradient(
+            thetas_init, k_i, family_weights, rest_deformations,
             lambda_restriction,
         )
         energy_by_levels = potential_by_level(
-            thetas_current, w_i, family_weights, rest_deformations
+            thetas, k_i, family_weights, rest_deformations
         )
-        total_energy = np.sum(energy_by_levels)
-        if total_energy > np.finfo(float).eps:
-            energy_fraction = energy_by_levels / total_energy
-        else:
-            energy_fraction = np.zeros_like(energy_by_levels)
-
-        length_x, _, length_y, _ = structure_size(thetas_current)
-        strain_x = (length_x - rest_length) / rest_length
-        if available_extension > 0.0:
-            straightening_fraction = (length_x - rest_length) / available_extension
-        else:
-            straightening_fraction = 0.0
-        area = length_x * length_y
         
         ax1.clear()
-        print_structure(thetas_current, ax1, square_size=1.0/2**n)
-        ax1.set_title(
-            f"f = {lambda_restriction:.2e}\n"
-            f"Lx = {length_x:.4f},  epsilon = {strain_x:.3e}\n"
-            f"fracción enderezada = {straightening_fraction:.3f},  "
-            f"área = {area:.4f}"
-        )
+        structure_size_x_max, structure_size_x_min, structure_size_y_max, structure_size_y_min = print_structure(thetas, ax1, square_size=1.0/2**n)
+        ax1.set_title(f"Lambda = {lambda_restriction:.2e}\nLx = {structure_size_x_max:.2f} \nArea = {structure_size_x_max * structure_size_y_max:.2f}")
 
         ax2.clear()
-        x_vals = np.arange(1, len(thetas_current)+1)
-        ax2.plot(x_vals, energy_fraction, 'o')
+        x_vals = np.arange(1, len(thetas)+1)
+        y_vals = energy_by_levels 
+        ax2.plot(x_vals, y_vals, 'o')
         ax2.set_title(r"$E_i / E$", fontsize=14)
         ax2.set_xticks(x_vals)
-        ax2.set_xlabel("nivel i")
-        ax2.set_ylabel("fracción de energía elástica")
-        ax2.set_ylim([0, 1.05])
-        for i, y in zip(x_vals, energy_fraction):
+        ax2.set_xlabel("i")
+        ax2.set_ylim([0, 5])
+        for i, y in zip(x_vals, y_vals):
              ax2.text(i, y, f"{y:.2f}", fontsize=9, ha='left', va='bottom')
 
     anim = FuncAnimation(fig, update, frames=len(lambda_values), interval=30)
     plt.show()
-    return anim
 
 if __name__ == "__main__":
     example_animation()
 
-
+    
