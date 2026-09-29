@@ -89,7 +89,7 @@ if __name__ == "__main__":
     for n in options.sizes:
 
         x_min = -5
-        x_max = 5
+        x_max = 6
         number_of_points = int((x_max - x_min)*3 + 1)
         lambda_values = np.logspace(x_min, x_max, number_of_points)
 
