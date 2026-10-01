@@ -1,109 +1,172 @@
-# Fractal Network — Elasticidad auxética jerárquica
+# Fractal Network
 
-Este repositorio contiene modelos numéricos y herramientas de visualización para estudiar la respuesta mecánica de una estructura auxética jerárquica. La estructura se construye recursivamente a partir de cuadrados rotables: cada nivel añade una nueva escala geométrica y un ángulo de deformación.
+Simulación numérica de la respuesta mecánica de una **red auxética jerárquica** formada por cuadrados rígidos conectados mediante bisagras rotables.
 
-El objetivo principal es calcular cómo una carga adimensional (`lambda`) modifica los ángulos de los niveles, el tamaño global de la red y la distribución de energía elástica.
+El modelo reduce una estructura de `N` niveles a `N` ángulos, calcula su geometría de manera recursiva y minimiza la energía a fuerza impuesta. La implementación principal utiliza el algoritmo **FIRE** (*Fast Inertial Relaxation Engine*) y escala linealmente con el número de niveles, lo que permite estudiar sistemas de hasta 16 384 variables.
 
-La formulación teórica principal está en [`documentation/Hierarchical_Auxetic_Elasticity.tex`](documentation/Hierarchical_Auxetic_Elasticity.tex).
+<p align="center">
+  <img src="doc/figures/fractal1.png" alt="Construcción de la red auxética jerárquica" width="650">
+</p>
 
-## Contenido
+## Características
 
-```text
-.
-├── documentation/                # Derivaciones y documentos de referencia
-├── src/
-│   ├── 1D/                       # Modelo espectral unidimensional
-│   ├── 1level/                   # Visualización de una red de un nivel
-│   └── nlevel/                   # Modelo principal de N niveles
-│       ├── dynamic.py             # Energía, geometría y minimización iterativa
-│       ├── second_order_dynamic.py# Solución recursiva para la red ideal
-│       ├── second_order_dynamic_noisy.py
-│       │                          # Variante con ángulos iniciales desordenados
-│       ├── plot_nlevels.py        # Construcción y dibujo de la estructura
-│       ├── main.py                # Barrido de carga para varios tamaños
-│       └── results/               # CSV generados y scripts de análisis
-└── *.gif                         # Animaciones de ejemplo
-```
+- Construcción geométrica recursiva de redes auxéticas de múltiples niveles.
+- Energía elástica con dos familias de bisagras, `phi-` y `phi+`.
+- Configuraciones naturales compatibles y pesos efectivos configurables por nivel.
+- Minimización a fuerza impuesta mediante FIRE o gradiente conjugado.
+- Continuación numérica: cada valor de carga comienza desde la solución anterior.
+- Exportación de muestras y estadísticos resumidos en formato CSV.
+- Pruebas de gradientes, convergencia, validación de entradas y sistemas grandes.
 
 ## Modelo
 
-Para una red con `N` niveles, cada nivel tiene un ángulo `theta_i` y una rigidez `k_i`. La energía elástica pondera los niveles por su multiplicidad geométrica, proporcional a `4^(N-i)`. La carga externa se representa mediante `lambda`.
+Cada nivel jerárquico está descrito por un ángulo `theta_i`. Las deformaciones reducidas de sus dos familias de bisagras son
 
-El solucionador de segundo orden usa una recurrencia para expresar los ángulos como proporcionales a `theta_1`; posteriormente fija la amplitud mediante la condición del último nivel. Con los ángulos resultantes se calculan:
-
-- extensiones máximas y mínimas en `x` e `y`;
-- área característica de la estructura;
-- promedio y promedio cuadrático de los ángulos;
-- energía almacenada en cada nivel.
-
-La variante ruidosa incorpora un estado de referencia `delta_i`, que modela desviaciones geométricas iniciales.
-
-## Requisitos
-
-Se recomienda Python 3.10 o posterior. Instala las dependencias con:
-
-```bash
-python3 -m pip install numpy matplotlib scipy pandas numba
+```text
+r_i^- = theta_i - sum(theta_j, j < i)
+r_i^+ = theta_i + sum(theta_j, j < i)
 ```
 
-## Uso
+La energía suma los residuos cuadráticos de ambas familias respecto de una configuración natural. El peso efectivo `w_i` incorpora la rigidez microscópica y la multiplicidad geométrica del nivel, proporcional a `4^(N-i)`.
 
-Los módulos emplean importaciones locales, por lo que conviene ejecutar los comandos desde el directorio correspondiente.
+Bajo una carga adimensional `lambda`, el código minimiza
 
-### Generar resultados para redes ideales
-
-Desde `src/nlevel`:
-
-```bash
-cd src/nlevel
-python3 main.py
+```text
+H(theta) = E(theta) - lambda * L_x(theta)
 ```
 
-Esto recorre tamaños de `4` a `128` ángulos y guarda archivos CSV en `src/nlevel/results/`. Cada archivo incluye `lambda`, tamaños geométricos, área y estadísticos de los ángulos.
+y obtiene la extensión, la deformación de ingeniería, la fracción de enderezamiento, el área y las dimensiones características de la red.
 
-### Visualizar una estructura jerárquica
+La formulación completa está disponible en [`doc/main_v3.pdf`](doc/main_v3.pdf) y en su fuente [`doc/main_v3.tex`](doc/main_v3.tex).
+
+## Instalación
+
+Se recomienda Python 3.10 o posterior.
 
 ```bash
-cd src/nlevel
-python3 plot_nlevels.py
+git clone https://github.com/Poss9368/Fractal_network.git
+cd Fractal_network
+
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install numpy scipy numba matplotlib pandas
 ```
 
-### Visualizar la solución de segundo orden
+`ffmpeg` sólo es necesario para exportar animaciones desde Matplotlib; no se requiere para ejecutar las simulaciones ni las pruebas.
+
+## Uso rápido
+
+Ejecuta los comandos desde la raíz del repositorio.
+
+### Simular la respuesta fuerza-deformación
 
 ```bash
-cd src/nlevel
-python3 second_order_dynamic.py
+python3 -m src.nlevel.main --sizes 4 16 64 256 --solver fire
 ```
 
-### Graficar los CSV generados
+El solucionador FIRE es el predeterminado. Para comparar con el método anterior:
 
 ```bash
-cd src/nlevel/results
-python3 plot_output_f-e.py
-python3 plot_output_theta-f.py
+python3 -m src.nlevel.main --sizes 4 16 --solver cg
 ```
 
-### Ejemplos simples
+También se puede elegir el directorio de salida:
 
 ```bash
-python3 src/1D/main.py
+python3 -m src.nlevel.main \
+  --sizes 1024 4096 16384 \
+  --solver fire \
+  --output-dir src/nlevel/results_fire
+```
+
+Opciones disponibles:
+
+| Opción | Descripción | Valor predeterminado |
+|---|---|---|
+| `--sizes` | Número de ángulos o niveles por simulación | `4 16 64 256 1024` |
+| `--solver` | Optimizador: `fire` o `cg` | `fire` |
+| `--processes` | Número de procesos | `1` |
+| `--output-dir` | Directorio para los CSV | `src/nlevel/results` |
+
+El barrido predeterminado utiliza 34 cargas logarítmicas entre `1e-5` y `1e6`, además del estado inicial con carga cero.
+
+### Graficar los resultados FIRE incluidos
+
+```bash
+python3 src/nlevel/results_fire/plot_output_f-e.py
+```
+
+El gráfico se guarda en `src/nlevel/results_fire/force_vs_epsilon.png`.
+
+<p align="center">
+  <img src="doc/figures/force_vs_epsilon.png" alt="Curvas fuerza-deformación para distintos tamaños" width="650">
+</p>
+
+### Visualizar la geometría
+
+```bash
+python3 -m src.nlevel.plot_nlevels
 python3 src/1level/plot_network_1level.py
 ```
 
-## Resultados disponibles
+## Archivos de salida
 
-El repositorio ya incluye barridos para 4, 8, 16, 32, 64 y 128 ángulos en `src/nlevel/results/`. Los scripts de análisis convierten `lambda` a una fuerza efectiva mediante `f = lambda / Lx_max` y permiten estudiar relaciones fuerza–deformación y fuerza–ángulos.
+Por cada tamaño `N`, la simulación genera dos archivos:
 
-## Estado actual y notas
+- `N_angles_samples.csv`: resultados individuales por semilla y por carga.
+- `N_angles_output.csv`: media, mediana, desviación estándar, error estándar y cuartiles de las observables principales.
 
-- La rama ideal (`main.py` y `second_order_dynamic.py`) es el flujo principal de cálculo.
-- `main_noisy.py` está en desarrollo: actualmente importa el solucionador ideal y no coincide con su valor de retorno. Para usar el caso ruidoso debe conectarse con `second_order_dynamic_noisy.py`.
-- Los archivos `__pycache__`, `.DS_Store` y los GIF son artefactos locales o visuales; se recomienda ignorarlos mediante `.gitignore` si el repositorio se va a compartir.
-- Los valores de prefactores y convenciones de índices en la recurrencia deben contrastarse con el documento teórico antes de publicar resultados finales.
+Entre las columnas se incluyen `lambda`, `strain`, `extension_x`, `straightening_fraction`, `length_x`, `area`, `rest_length` y `geometric_max_length`.
 
-## Referencias internas
+El repositorio contiene resultados de referencia para tamaños entre 4 y 16 384 ángulos en [`src/nlevel/results_fire`](src/nlevel/results_fire).
 
-- `documentation/Hierarchical_Auxetic_Elasticity.tex`: desarrollo del modelo auxético jerárquico.
-- `documentation/Noisy_Elastica_v1.pdf` y `documentation/Noisy_Elastica _v2.pdf`: notas sobre la extensión con desorden.
-- `documentation/Non_hookean_mechanics_of_random_slender_chains.tex`: contexto sobre respuesta no hookeana y filtrado geométrico multiescala.
+## Pruebas
 
+```bash
+python3 -m unittest src.nlevel.test_dynamic src.nlevel.test_fire -v
+```
+
+Las pruebas comparan gradientes analíticos con diferencias finitas, contrastan FIRE con BFGS en sistemas pequeños y comprueban convergencia hasta 16 384 variables. La prueba completa puede tardar algunos segundos por la compilación inicial de Numba.
+
+## Estructura del repositorio
+
+```text
+.
+├── doc/
+│   ├── main_v3.tex                 # Formulación teórica actual
+│   ├── main_v3.pdf
+│   └── figures/                    # Figuras del manuscrito
+├── documentation/                  # Notas y documentos complementarios
+├── src/
+│   ├── 1level/                     # Visualización de un nivel
+│   └── nlevel/
+│       ├── dynamic.py              # Energía, geometría y API de optimización
+│       ├── fire.py                 # Implementación escalable del algoritmo FIRE
+│       ├── main.py                 # Barrido de carga y exportación de CSV
+│       ├── benchmark_fire.py       # Benchmark reproducible de FIRE
+│       ├── plot_nlevels.py         # Construcción y visualización geométrica
+│       ├── test_dynamic.py
+│       ├── test_fire.py
+│       ├── results/                # Resultados de tamaños pequeños
+│       └── results_fire/           # Resultados FIRE hasta N = 16 384
+└── old/                            # Implementaciones y experimentos históricos
+```
+
+## Benchmark de FIRE
+
+Para repetir el barrido de parámetros descrito en [`src/nlevel/FIRE.md`](src/nlevel/FIRE.md):
+
+```bash
+python3 -m src.nlevel.benchmark_fire \
+  --sizes 4096 16384 \
+  --output fire_benchmark.json
+```
+
+El benchmark excluye de la medición la primera compilación de Numba y guarda convergencia, iteraciones, tiempo y energía para cada configuración ensayada. Los tiempos dependen del equipo.
+
+## Estado del proyecto
+
+El desarrollo activo está en `src/nlevel`. El directorio `old/` conserva variantes anteriores y experimentos para trazabilidad, pero no forma parte del flujo recomendado.
+
+La convergencia numérica identifica un punto estacionario de la rama seguida por continuación; no constituye una certificación de mínimo global.
