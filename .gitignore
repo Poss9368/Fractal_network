@@ -10,6 +10,9 @@ venv/
 env/
 ENV/
 .python-version
+*/.DS_Store
+*.aux
+*.gz 
 
 # Test, coverage, and type-checker caches
 .pytest_cache/
