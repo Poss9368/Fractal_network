@@ -38,7 +38,7 @@ def benchmark(sizes, forces, fraction=.5, max_steps=3000, profiles=None):
             for force in forces:
                 start=perf_counter()
                 result=fire_minimize(theta,w,fam,natural,float(force),**params,
-                    max_steps=max_steps,return_info=True,raise_on_failure=False)
+                    ftol=1e-7,max_steps=max_steps,return_info=True,raise_on_failure=False)
                 row=dict(profile=name,n=n,force=float(force),seconds=perf_counter()-start,
                     iterations=result.iterations,converged=result.converged,
                     gradient_max=result.gradient_max,energy=result.energy)

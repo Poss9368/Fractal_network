@@ -22,7 +22,9 @@ REST_FRACTION = 0.5
 
 
 def simulate_seed(args):
-    seed, n, w_i, lambda_values, solver = args
+    seed, n, w_i, lambda_values, solver = args[:5]
+    fire_options = args[5] if len(args) > 5 else {}
+    state_directory = Path(args[6]) if len(args) > 6 else None
     minimize = fire_minimize if solver == "fire" else conjudate_gradient
 
     theta_star = maximum_length_angle(n)
@@ -34,6 +36,16 @@ def simulate_seed(args):
     # family_weights = np.column_stack((np.ones(n), np.zeros(n)))  # sólo phi-
     # family_weights = np.column_stack((np.zeros(n), np.ones(n)))  # sólo phi+
     results = []
+    correction = np.zeros(n)
+    precise_states, precise_corrections, diagnostics = [], [], []
+    if solver == "fire":
+        initial = fire_minimize(thetas,w_i,family_weights,rest_deformations,0.,
+                                return_info=True,**fire_options)
+        thetas, correction = initial.thetas, initial.theta_correction
+        precise_states.append(thetas.copy())
+        precise_corrections.append(correction.copy())
+        diagnostics.append((0.,initial.gradient_max,initial.rounded_gradient_max,
+                            initial.tolerance,initial.iterations))
 
     geometric_max_length = structure_size(np.full(n, theta_star))[0]
 
@@ -52,10 +64,20 @@ def simulate_seed(args):
     ))
 
     for lambda_restriction in lambda_values:
-        thetas = minimize(
-            thetas, w_i, family_weights, rest_deformations,
-            lambda_restriction,
-        )
+        if solver == "fire":
+            result = fire_minimize(
+                thetas,w_i,family_weights,rest_deformations,lambda_restriction,
+                theta_correction=correction,return_info=True,**fire_options,
+            )
+            thetas, correction = result.thetas, result.theta_correction
+            precise_states.append(thetas.copy())
+            precise_corrections.append(correction.copy())
+            diagnostics.append((lambda_restriction,result.gradient_max,
+                                result.rounded_gradient_max,result.tolerance,
+                                result.iterations))
+        else:
+            thetas = minimize(thetas,w_i,family_weights,rest_deformations,
+                              lambda_restriction)
         length_x, length_x_min, length_y_max, length_y_min = structure_size(thetas)
         extension_x = length_x - rest_length
         strain_x = extension_x / rest_length
@@ -72,6 +94,16 @@ def simulate_seed(args):
             geometric_max_length,
         ))
 
+    if solver == "fire" and state_directory is not None:
+        state_directory.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(
+            state_directory / f"{n}_seed{seed}_fire_states.npz",
+            theta_hi=np.asarray(precise_states), theta_lo=np.asarray(precise_corrections),
+            diagnostics=np.asarray(diagnostics),
+            diagnostic_columns=np.array(["force", "gradient_max", "rounded_gradient_max",
+                                         "tolerance", "iterations"]),
+            rest_deformations=rest_deformations, weights=w_i, family_weights=family_weights,
+        )
     print(f"Seed {seed} completed.")
     return results
 
@@ -82,7 +114,18 @@ if __name__ == "__main__":
     parser.add_argument("--solver", choices=["fire", "cg"], default="fire")
     parser.add_argument("--processes", type=int, default=1)
     parser.add_argument("--output-dir", type=Path, default=RESULTS_PATH)
+    parser.add_argument("--ftol", type=float, default=1e-12,
+                        help="Tolerancia absoluta del gradiente máximo para FIRE")
+    parser.add_argument("--fire-dt", type=float, default=0.1)
+    parser.add_argument("--fire-dt-max", type=float, default=0.1)
+    parser.add_argument("--fire-max-steps", type=int, default=50000)
     options = parser.parse_args()
+    if (not np.all(np.isfinite([options.ftol, options.fire_dt, options.fire_dt_max]))
+            or options.ftol <= 0 or not 0 < options.fire_dt <= options.fire_dt_max
+            or options.fire_max_steps < 1):
+        parser.error("FIRE requiere ftol > 0, 0 < dt <= dt_max y max_steps > 0")
+    fire_options = dict(ftol=options.ftol, rtol=0., dt=options.fire_dt,
+                        dt_max=options.fire_dt_max, max_steps=options.fire_max_steps)
     if any(n < 1 for n in options.sizes) or options.processes < 1:
         parser.error("Los tamaños y el número de procesos deben ser positivos")
     options.output_dir.mkdir(parents=True, exist_ok=True)
@@ -100,7 +143,7 @@ if __name__ == "__main__":
         w_i = np.ones(n, dtype=float)
 
         tasks = [
-            (seed, n, w_i, lambda_values, options.solver)
+            (seed, n, w_i, lambda_values, options.solver, fire_options, options.output_dir)
             for seed in range(BASE_SEED, BASE_SEED + N_SEEDS)
         ]
 

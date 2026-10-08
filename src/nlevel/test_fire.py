@@ -5,7 +5,7 @@ from scipy.optimize import minimize
 from .dynamic import (fire_minimize, maximum_length_angle,
                       rest_deformations_from_thetas, modified_hamiltonian,
                       modified_hamiltonian_gradient, constraint_term_gradient)
-from .fire import _evaluate, _length_gradient
+from .fire import _evaluate, _length_gradient, _reference_residual
 
 
 class FIRETests(unittest.TestCase):
@@ -67,7 +67,8 @@ class FIRETests(unittest.TestCase):
 
     def test_failure_is_explicit(self):
         args=self.case(4)
-        with self.assertRaises(RuntimeError): fire_minimize(*args,1.,max_steps=0)
+        with self.assertRaisesRegex(RuntimeError, "N=4, fuerza=1"):
+            fire_minimize(*args,1.,max_steps=0)
         r=fire_minimize(*args,1.,max_steps=0,return_info=True,raise_on_failure=False)
         self.assertFalse(r.converged)
         self.assertEqual(r.iterations,0)
@@ -84,11 +85,52 @@ class FIRETests(unittest.TestCase):
         for n in (4096,16384):
             args=list(self.case(n))
             for load in (1e-5,1.,1e3,1e5):
-                result=fire_minimize(*args,load,return_info=True,max_steps=3000)
+                result=fire_minimize(*args,load,return_info=True,max_steps=3000,ftol=1e-7)
                 self.assertLessEqual(result.gradient_max,1e-7)
                 self.assertLess(result.iterations,3000)
                 self.assertTrue(np.all(np.isfinite(result.thetas)))
                 args[0]=result.thetas
+
+    def test_precision_defaults(self):
+        for n in (64, 4096, 16384):
+            args = self.case(n)
+            result = fire_minimize(*args, 1., return_info=True, max_steps=3000)
+            self.assertEqual(result.tolerance, 1e-10)
+            self.assertTrue(result.converged)
+            self.assertLessEqual(result.gradient_max, 1e-10)
+
+    def test_complete_precision_force_sweep(self):
+        # Regresión del comando del usuario: 34 fuerzas hasta 1e6.
+        for n in (4096, 16384):
+            theta, weights, families, rest = self.case(n)
+            for force in np.logspace(-5, 6, 34):
+                result = fire_minimize(theta, weights, families, rest, force,
+                                      return_info=True, max_steps=3000)
+                theta = result.thetas
+                actual = _evaluate(np.zeros(n), theta, _reference_residual(theta, rest),
+                                   weights, families, force)
+                with self.subTest(n=n, force=force):
+                    self.assertTrue(result.converged)
+                    self.assertLessEqual(actual[2], 1e-10)
+                    self.assertEqual(result.tolerance, 1e-10)
+                    self.assertEqual(result.gradient_max, actual[2])
+                    self.assertAlmostEqual(result.energy, actual[0], places=12)
+
+    def test_compensated_reference_residual(self):
+        from decimal import Decimal, localcontext
+        theta = np.array([1e4, 1e-9, -1e4, 1e-10, 0.3])
+        rest = np.array([[0.2, 0.3]]*len(theta))
+        actual = _reference_residual(theta, rest)
+        with localcontext() as context:
+            context.prec = 60
+            total = Decimal(0)
+            for i, value in enumerate(theta):
+                d = Decimal(float(value))
+                rm = d-total-Decimal(float(rest[i, 0]))
+                rp = d+total-Decimal(float(rest[i, 1]))
+                self.assertEqual(actual[i, 0], float(rm))
+                self.assertEqual(actual[i, 1], float(rp))
+                total += d
 
     def test_without_preconditioner(self):
         args=self.case(8)
